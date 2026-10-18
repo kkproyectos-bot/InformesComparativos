@@ -1,0 +1,1197 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Informes Comparativos de Auditoría</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+:root{
+  color-scheme: light;
+  --bg:#f4f3f0; --surface:#fcfcfb; --surface-2:#f0efeb; --border:#dedcd6;
+  --text:#1b1b1a; --text-2:#52514e; --muted:#7c7a74;
+  --accent:#1f5f8b; --accent-soft:#e3eef6;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#008300; --s7:#6250d6; --s8:#e34948;
+  --good:#1a7f37; --good-bg:#e6f4ea; --bad:#c62828; --bad-bg:#fdecea; --warn:#9a6700; --warn-bg:#fff4d6; --neutral-bg:#ecebe7;
+  --grid:#e6e4df;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --bg:#121211; --surface:#1a1a19; --surface-2:#232321; --border:#34332f;
+    --text:#f0efec; --text-2:#c3c2b7; --muted:#8f8d86;
+    --accent:#6fb0e0; --accent-soft:#1d2a34;
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#008300; --s7:#9085e9; --s8:#e66767;
+    --good:#5cc37a; --good-bg:#16291c; --bad:#f07070; --bad-bg:#331a1a; --warn:#e0b44c; --warn-bg:#30270f; --neutral-bg:#2a2a27;
+    --grid:#2c2b28;
+  }
+}
+:root[data-theme="dark"]{
+    color-scheme: dark;
+    --bg:#121211; --surface:#1a1a19; --surface-2:#232321; --border:#34332f;
+    --text:#f0efec; --text-2:#c3c2b7; --muted:#8f8d86;
+    --accent:#6fb0e0; --accent-soft:#1d2a34;
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#008300; --s7:#9085e9; --s8:#e66767;
+    --good:#5cc37a; --good-bg:#16291c; --bad:#f07070; --bad-bg:#331a1a; --warn:#e0b44c; --warn-bg:#30270f; --neutral-bg:#2a2a27;
+    --grid:#2c2b28;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:18px 16px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px}
+header .wrap{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:0}
+h1{font-size:20px;margin:0}
+h1 small{display:block;font-size:13px;font-weight:400;color:var(--text-2)}
+h2{font-size:17px;margin:0 0 4px}
+h3{font-size:15px;margin:22px 0 8px}
+p.sub{margin:0 0 14px;color:var(--text-2);font-size:13.5px}
+nav.tabs{display:flex;gap:4px;flex-wrap:wrap;margin:18px 0 0}
+nav.tabs button{border:1px solid var(--border);background:var(--surface);color:var(--text-2);padding:8px 14px;border-radius:8px 8px 0 0;cursor:pointer;font:inherit;font-size:14px}
+nav.tabs button[aria-selected="true"]{background:var(--surface);color:var(--text);border-bottom-color:var(--surface);font-weight:600;box-shadow:inset 0 3px 0 var(--accent)}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:0 10px 10px 10px;padding:20px;margin-bottom:28px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--text-2)}
+select{max-width:100%}
+select,input[type=month],input[type=number],input[type=text],textarea{font:inherit;font-size:14px;padding:7px 9px;border:1px solid var(--border);border-radius:7px;background:var(--surface);color:var(--text)}
+textarea{width:100%;min-height:170px;resize:vertical;line-height:1.45}
+button.btn{font:inherit;font-size:14px;padding:8px 14px;border-radius:7px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
+button.btn.ghost{background:transparent;color:var(--accent)}
+button.btn.small{padding:4px 10px;font-size:13px}
+.drop{border:2px dashed var(--border);border-radius:10px;padding:26px 16px;text-align:center;color:var(--text-2);cursor:pointer;transition:.15s}
+.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+.drop strong{color:var(--text)}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{padding:7px 9px;border-bottom:1px solid var(--grid);text-align:right;white-space:nowrap}
+th{font-weight:600;color:var(--text-2);background:var(--surface-2);position:sticky;top:0}
+td:first-child,th:first-child{text-align:left;white-space:normal}
+tr.grp td{background:var(--surface-2);font-weight:600;text-align:left;color:var(--text)}
+tr.tot td{font-weight:650}
+.tablewrap{overflow-x:auto;border:1px solid var(--border);border-radius:8px}
+.num{font-variant-numeric:tabular-nums}
+.pill{display:inline-block;padding:1px 8px;border-radius:99px;font-size:12px;font-weight:600}
+.d-good{color:var(--good);background:var(--good-bg)}
+.d-bad{color:var(--bad);background:var(--bad-bg)}
+.d-neu{color:var(--text-2);background:var(--neutral-bg)}
+.d-warn{color:var(--warn);background:var(--warn-bg)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(205px,1fr));gap:12px;margin:12px 0 6px}
+.kpi{border:1px solid var(--border);border-radius:10px;padding:12px 14px;background:var(--surface)}
+.kpi .l{font-size:12.5px;color:var(--text-2)}
+.kpi .v{font-size:26px;font-weight:650;margin:2px 0;font-variant-numeric:tabular-nums}
+.kpi .p{font-size:12px;color:var(--muted)}
+.chartbox{position:relative;height:320px}
+.note{font-size:12.5px;color:var(--muted)}
+.find{border-left:3px solid var(--accent);padding:8px 12px;margin:10px 0;background:var(--surface-2);border-radius:0 8px 8px 0}
+.find.good{border-left-color:var(--good)} .find.bad{border-left-color:var(--bad)}
+.find b{color:var(--text)}
+.find ul{margin:4px 0 0;padding-left:18px;color:var(--text-2);font-size:14px}
+.find li{margin:2px 0}
+ul.sug{padding-left:20px;margin:6px 0} ul.sug li{margin:4px 0;color:var(--text-2)}
+ul.sug li b{color:var(--text)}
+.months{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.mchip{border:1px solid var(--border);border-radius:8px;padding:6px 10px;background:var(--surface-2);font-size:13px;display:flex;gap:8px;align-items:center}
+.mchip button{border:0;background:none;color:var(--muted);cursor:pointer;font-size:15px;line-height:1}
+.zin{width:70px;padding:4px 5px;text-align:right}
+.ok{color:var(--good)} .ko{color:var(--bad)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--text-2)}
+details summary{cursor:pointer;color:var(--accent);font-size:13.5px}
+.status{font-size:13px;color:var(--text-2);margin-top:8px;min-height:20px}
+table.pend td{white-space:normal;vertical-align:top;text-align:left}
+table.pend th{text-align:left}
+table.pend select{font-size:12.5px;padding:3px 5px;width:100%;margin-bottom:3px}
+table.pend input{font-size:12.5px;padding:3px 6px;width:100%}
+table.pend td.mcol{min-width:170px}
+table.heat td{text-align:center}
+.chk{display:flex;gap:8px;align-items:baseline;padding:4px 0;font-size:14px;cursor:pointer}
+.chks{border-top:1px solid var(--grid);margin-top:6px;padding-top:6px}
+.dlgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin:10px 0}
+.dlgrid .card p{margin:4px 0 12px;font-size:13.5px;color:var(--text-2)}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap" style="max-width:1148px">
+    <h1>Informes comparativos <small>Auditoría mensual<span id="objTxt"></span></small></h1>
+    <div class="row">
+      <label class="f">Objetivo / barrio (opcional)<input type="text" id="objetivo" placeholder="Sale en los descargables" style="min-width:220px"></label>
+      <label class="f">Tema
+        <select id="theme"><option value="">Automático</option><option value="light">Claro</option><option value="dark">Oscuro</option></select>
+      </label>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-tab="carga" aria-selected="true">1 · Informes cargados</button>
+    <button role="tab" data-tab="comp" aria-selected="false">2 · Comparativa por período</button>
+    <button role="tab" data-tab="aliara" aria-selected="false">3 · ALIARA por zona</button>
+    <button role="tab" data-tab="estado" aria-selected="false">4 · Estado y pendientes</button>
+    <button role="tab" data-tab="sug" aria-selected="false">5 · Hallazgos</button>
+    <button role="tab" data-tab="desc" aria-selected="false">6 · Descargas</button>
+  </nav>
+
+  <!-- 1 CARGA -->
+  <section class="panel" id="p-carga">
+    <h2>Informes mensuales</h2>
+    <p class="sub">Cargá los PDF de los meses que quieras comparar. El mes y los indicadores se detectan automáticamente desde el texto del informe. Nada se guarda en el navegador: al cerrar o recargar la página se pierde lo cargado, así que bajá los informes antes de salir.</p>
+    <div class="drop" id="drop"><strong>Arrastrá los PDF acá</strong> o hacé clic para elegirlos<br><span class="note">Se procesan en tu navegador; no se suben a ningún servidor.</span></div>
+    <input type="file" id="file" accept="application/pdf" multiple hidden>
+    <div class="status" id="status"></div>
+    <div class="months" id="months"></div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn ghost small" id="btnClear">Vaciar todo</button>
+    </div>
+    <h3>Indicadores extraídos por mes</h3>
+    <p class="sub">Revisá que lo detectado sea correcto. Las celdas en blanco son datos que el informe no trae en texto. La dotación se carga a mano y se usa para la tasa de rotación.</p>
+    <div class="tablewrap" id="rawTable"></div>
+  </section>
+
+  <!-- 2 COMPARATIVA -->
+  <section class="panel" id="p-comp" hidden>
+    <h2>Comparativa por período</h2>
+    <p class="sub">Elegí cómo agrupar los meses. Cada período se compara con el anterior: diferencia absoluta y cambio porcentual. Los conteos se suman, los valores de stock (habilitaciones, odómetro, pendientes abiertos) toman el último mes del período, las tasas y proporciones se recalculan con los totales y el índice del tablero se promedia.</p>
+    <div class="row">
+      <label class="f">Agrupar por
+        <select id="gran">
+          <option value="1">Mensual</option><option value="2">Bimestral</option><option value="3">Trimestral</option>
+          <option value="4">Cuatrimestral</option><option value="6">Semestral</option><option value="12">Anual</option>
+          <option value="custom">Personalizado (A vs B)</option>
+        </select>
+      </label>
+      <span id="customBox" class="row" hidden>
+        <label class="f">A desde<input type="month" id="aFrom"></label>
+        <label class="f">A hasta<input type="month" id="aTo"></label>
+        <label class="f">B desde<input type="month" id="bFrom"></label>
+        <label class="f">B hasta<input type="month" id="bTo"></label>
+      </span>
+    </div>
+    <details style="margin:12px 0 4px"><summary>Estándares de cumplimiento (editables)</summary>
+      <div class="row" style="margin-top:8px">
+        <label class="f">Visitas Supervisor + Jefe por mes<input type="number" id="stdSup" min="1" step="1"></label>
+        <label class="f">Visitas de auditoría mínimas por mes<input type="number" id="stdAud" min="1" step="1"></label>
+        <label class="f">% de personal habilitado exigido<input type="number" id="stdHab" min="1" max="100" step="1"></label>
+        <button class="btn ghost small" id="stdReset">Volver a los valores originales</button>
+      </div>
+    </details>
+    <div class="kpis" id="kpis"></div>
+    <div class="legend" style="margin:6px 0 12px"><span><span class="pill d-good">▲ mejora</span></span><span><span class="pill d-bad">▼ empeora</span></span><span><span class="pill d-neu">● sin juicio de valor</span></span><span class="note">El color depende del sentido deseable de cada indicador, no del signo.</span></div>
+    <div class="tablewrap" id="compTable"></div>
+    <h3>Evolución</h3>
+    <div class="row" style="margin-bottom:8px">
+      <label class="f" style="max-width:100%;flex:1 1 280px">Indicador<select id="evoSel"></select></label>
+    </div>
+    <div class="card"><div class="chartbox"><canvas id="evoChart" aria-label="Evolución del indicador seleccionado"></canvas></div></div>
+  </section>
+
+  <!-- 3 ALIARA -->
+  <section class="panel" id="p-aliara" hidden>
+    <h2>Detección perimetral ALIARA · alarmas por zona</h2>
+    <p class="sub">En el informe estas tablas vienen como imagen: al subir el PDF la página las lee automáticamente (alarmas y cable cortado por zona). El control ✓ verifica que la suma de zonas coincida con el total de alarmas del texto; si no coincide o falta algún mes, se puede corregir a mano en la tabla de abajo.</p>
+    <div class="row" style="margin-bottom:10px">
+      <label class="f">Métrica<select id="zMetric"><option value="alarmas">Alarmas por zona</option><option value="cable">Cable cortado por zona</option></select></label>
+      <label class="f">Ver<select id="zView"><option value="abs">Cantidades</option><option value="pct">% sobre el total del período</option></select></label>
+    </div>
+    <div class="card"><div class="chartbox" style="height:340px"><canvas id="zChart" aria-label="Alarmas por zona por período"></canvas></div></div>
+    <h3>Variación por zona entre los dos últimos períodos</h3>
+    <p class="note" style="margin:0 0 8px">Rojo: la zona tuvo más eventos que en el período anterior. Verde: tuvo menos.</p>
+    <div class="card"><div class="chartbox" style="height:300px"><canvas id="zDelta" aria-label="Variación por zona"></canvas></div></div>
+    <h3>Estadísticos por período</h3>
+    <div class="tablewrap" id="zStats"></div>
+    <h3>Mapa de calor zona × mes</h3>
+    <p class="note" style="margin:0 0 8px">Cantidad y participación de cada zona en el total del mes. Cuanto más intenso el color, mayor la participación.</p>
+    <div class="tablewrap" id="zHeat"></div>
+    <h3>Zonas recurrentes</h3>
+    <p class="note" style="margin:0 0 8px">Cuántos meses estuvo cada zona entre las 3 con más eventos y cuántos meses seguidos lleva ahí hasta el último mes cargado.</p>
+    <div class="tablewrap" id="zRank"></div>
+    <h3>Zonas por mes (revisión y corrección manual)</h3>
+    <div class="tablewrap" id="zInputs"></div>
+  </section>
+
+  <!-- 4 ESTADO -->
+  <section class="panel" id="p-estado" hidden>
+    <h2>Tablero de estado y seguimiento</h2>
+    <p class="sub">Estado que el auditor asigna a cada ítem, mes a mes (se lee automáticamente del PDF).</p>
+    <h3>Índice de estado por área (0 a 100)</h3>
+    <p class="sub">Promedio de los puntajes (definidos más abajo) de los ítems de cada área, llevado a una escala de 0 a 100 (100 = todos los ítems en el mejor estado). Verde ≥ 75, amarillo 50 a 74,9, rojo &lt; 50.</p>
+    <div class="tablewrap" id="idxTable"></div>
+    <div class="card" style="margin-top:12px"><div class="chartbox" style="height:300px"><canvas id="idxChart" aria-label="Índice de estado por área"></canvas></div></div>
+    <h3>Puntaje de cada estado</h3>
+    <p class="sub">Escala de 0 (peor) a 3 (mejor). Se pueden modificar; un estado con el casillero vacío no cuenta en el índice.</p>
+    <div class="tablewrap" id="scoreTable" style="max-width:560px"></div>
+    <div class="row" style="margin-top:8px">
+      <button class="btn ghost small" id="scoreSug">Volver a los valores originales</button>
+    </div>
+    <h3>Estado de cada ítem</h3>
+    <p class="sub">Se resaltan los ítems que cambiaron de estado en el rango cargado.</p>
+    <div class="tablewrap" id="tabTable"></div>
+    <h3>Seguimiento de pendientes</h3>
+    <p class="sub">Temas que el informe arrastra mes a mes. Para cada mes elegí la situación (Abierto, Mejora, Empeora, Resuelto) y, si querés, un detalle. La antigüedad se cuenta desde "Abierto desde" (o desde el primer mes registrado) hasta el último mes cargado, o hasta el mes en que se resolvió.</p>
+    <div class="row" style="margin-bottom:10px">
+      <button class="btn ghost small" id="btnPendAdd">Agregar tema</button>
+      <button class="btn ghost small" id="btnPendCopy"></button>
+      <span class="status" id="pendStatus" style="margin:0"></span>
+    </div>
+    <div class="tablewrap" id="pendTable"></div>
+    <p class="note" id="pendResumen" style="margin:8px 0 0"></p>
+  </section>
+
+  <!-- 5 HALLAZGOS -->
+  <section class="panel" id="p-sug" hidden>
+    <h2>Hallazgos</h2>
+    <p class="sub" id="hallSub"></p>
+    <div id="findings"></div>
+    <h3>Notas del analista</h3>
+    <p class="sub" id="notasSub"></p>
+    <textarea id="notas" placeholder="Escribí acá la lectura cualitativa del período (lo que los números no muestran)."></textarea>
+    <h3>Comparativas que todavía no están incluidas</h3>
+    <ul class="sug">
+      <li><b>Pedidos de informe por tipo</b> (accesos/semáforo rojo, documentación, conducta) y tiempo hasta la resolución: hace falta definir cómo se clasifica cada pedido.</li>
+      <li><b>Estacionalidad</b> (temporada estival vs invernal): tiene sentido cuando haya al menos un año de informes cargados.</li>
+      <li><b>Tasa de cierre de las recomendaciones de la sección 8</b>: hoy se pueden seguir como temas en la tabla de pendientes.</li>
+    </ul>
+  </section>
+
+  <!-- 6 DESCARGAS -->
+  <section class="panel" id="p-desc" hidden>
+    <h2>Descargas</h2>
+    <p class="sub">Los informes usan la agrupación elegida en la solapa 2 (ahora: <b id="descGran"></b>) y todos los meses cargados.</p>
+    <h3>¿Qué querés incluir?</h3>
+    <div class="card" style="max-width:640px">
+      <label class="chk"><input type="checkbox" id="dlTodo" checked> <b>Todo</b></label>
+      <div class="chks">
+        <label class="chk"><input type="checkbox" data-sec="comparativa" checked> Comparativa por período <span class="note">(indicadores principales y tabla completa)</span></label>
+        <label class="chk"><input type="checkbox" data-sec="datos" checked> Datos mensuales extraídos</label>
+        <label class="chk"><input type="checkbox" data-sec="aliara" checked> ALIARA por zona <span class="note">(estadísticos, mapa de calor y zonas recurrentes)</span></label>
+        <label class="chk"><input type="checkbox" data-sec="tablero" checked> Estado del tablero <span class="note">(índice por área e ítems)</span></label>
+        <label class="chk"><input type="checkbox" data-sec="pendientes" checked> Seguimiento de pendientes</label>
+        <label class="chk"><input type="checkbox" data-sec="hallazgos" checked> Hallazgos y notas del analista</label>
+      </div>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <button class="btn" id="btnXlsx">Descargar Excel</button>
+      <button class="btn" id="btnPdf">Descargar PDF</button>
+      <button class="btn ghost" id="btnCsv">Tabla comparativa en CSV</button>
+    </div>
+    <p class="note" style="margin:8px 0 0">En Excel cada sección elegida sale en su propia hoja; en el PDF, una a continuación de la otra. El CSV trae sólo los valores por período.</p>
+    <div class="status" id="descStatus"></div>
+  </section>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ===================== Extractor (texto del PDF → indicadores) ===================== */
+function unirItems(items){
+  let out='', prev=null;
+  for(const it of items){
+    if(!it.str && !it.hasEOL) continue;
+    const x=it.transform[4], y=it.transform[5], fs=Math.hypot(it.transform[0],it.transform[1])||10;
+    if(prev){
+      const sameLine=Math.abs(y-prev.y)<fs*0.5;
+      if(!sameLine) out+='\n';
+      else { const gap=x-prev.end; if(gap>fs*0.15 && !out.endsWith(' ') && !it.str.startsWith(' ')) out+=' '; }
+    }
+    out+=it.str;
+    prev={y, end:x+(it.width||0)};
+    if(it.hasEOL){ out+='\n'; }
+  }
+  return out;
+}
+
+const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const PALABRAS = {uno:1,una:1,dos:2,tres:3,cuatro:4,cinco:5,seis:6,siete:7,ocho:8,nueve:9,diez:10};
+
+function num(s){ if(s==null) return null; s=String(s).trim(); if(PALABRAS[s.toLowerCase()]!=null) return PALABRAS[s.toLowerCase()];
+  if(/^\d{1,3}(\.\d{3})+$/.test(s)) return +s.replace(/\./g,'');
+  return +s.replace(',', '.'); }
+function hhmm(t){ const [h,m]=t.split(':').map(Number); return h*60+m; }
+
+function extraer(raw){
+  const t = raw.replace(/\s+/g,' ');
+  const r = {}; const g=(re,i=1)=>{ const m=t.match(re); return m?m[i]:null; };
+  const mm = t.match(/INFORME MENSUAL\s+DE AUDITORIA\s+([A-ZÁÉÍÓÚ]+)\s+(20\d\d)/i) || t.match(/durante el mes de (\w+) de (20\d\d)/i);
+  if(mm){ r.mes = MESES.indexOf(mm[1].toLowerCase())+1; r.anio=+mm[2]; }
+  const vis = [...t.matchAll(/(?:Lunes|Martes|Miércoles|Jueves|Viernes|Sábado|Domingo) (\d{1,2}) (\d{2}:\d{2}) (\d{2}:\d{2})/g)];
+  r.visitas_auditoria = vis.length || null;
+  if(vis.length){ let tot=0, noct=0; vis.forEach(v=>{ let a=hhmm(v[2]), b=hhmm(v[3]); if(b<a) b+=1440; tot+=b-a; if(a<6*60||a>=22*60) noct++; });
+    r.horas_auditoria = +(tot/60).toFixed(2); r.visitas_nocturnas = noct; }
+  r.dias_supervisor = num(g(/Supervisor Sr\.? [A-ZÁÉÍÓÚa-záéíóúñ ]+? registró presencia en el objetivo durante un total de (\d+)/));
+  r.dias_jefe_servicio = num(g(/Jefe de Servicio Sr\.? [A-Za-záéíóúñ ]+? registró presencia en el objetivo durante un total de (\d+)/)) ?? 0;
+  r.dias_reemplazo = num(g(/estuvo presente en el objetivo un total de (\d+)/));
+  r.bajas = num(g(/se realizaron un total de (\d+) \(\w+\) (?:bajas|modificaciones)/));
+  r.altas = num(g(/incorporación de (\d+) \(\w+\) nuev[oa]s/));
+  r.hab_vigente = num(g(/el ([\d,]+) ?% del personal de \w+ asignado al predio posee credencial habilitante vigente/));
+  r.hab_tramite = num(g(/el ([\d,]+) ?% del personal se encuentra con la credencial en trámite/));
+  r.hab_no_iniciado = num(g(/el ([\d,]+) ?% del personal aún no ha iniciado/));
+  r.hab_sin_credencial = num(g(/el ([\d,]+) ?% del personal carece de credencial vigente/)) ?? 0;
+  const apl = g(/se aplicaron al personal un total de (\d+) \(\w+\) medidas disciplinarias/);
+  r.medidas_disciplinarias = apl!=null ? num(apl) : (/no se registró la aplicación de sanciones al personal/.test(t) ? 0 : null);
+  r.km_auto = num(g(/kilometraje de ([\d.]+) kil/));
+  r.km_cuatri_420 = num(g(/TRX 420 cc, sin dominio colocado, el cual registraba ([\d.]+) km/));
+  r.km_cuatri_250 = num(g(/TRX 250 cc, sin dominio colocado, el cual registraba ([\d.]+) km/));
+  r.aliara_eventos = num(g(/total aproximado de ([\d.]+) eventos/));
+  r.aliara_alarmas = num(g(/únicamente ([\d.]+) correspondieron a activaciones asociadas a disparos de alarma/));
+  r.aliara_media_zona = num(g(/promedio de ([\d.,]+) eventos de alarma por zona/));
+  r.aliara_desvio_zona = num(g(/desvío estándar de ([\d.,]+) ?eventos por zona/));
+  r.aliara_extraordinarios = num(g(/se contabilizó un total de ([\d.]+) eventos, (?:representando|equivalentes)/));
+  const piBlock = g(/ACTAS DE INCLUMPLIMIENTO.*?(?=7\. NOVEDADES DE SEGURIDAD)/,0) || '';
+  const nuevos = new Set([...piBlock.matchAll(/Pedido de Informe N[º°]\s?(\d+\/\d+):/g)].map(m=>m[1]));
+  const resol = new Set([...piBlock.matchAll(/Resolución del Pedido de Informe N[º°]\s?(\d+\/\d+)/g)].map(m=>m[1]));
+  resol.forEach(x=>nuevos.delete(x));
+  r.pedidos_informe = nuevos.size || null;
+  const cnt=(re)=>[...piBlock.matchAll(re)].reduce((a,m)=>a+num(m[1]),0);
+  r.sanciones_graves = cnt(/(\d+|una|dos|tres) \((?:una|dos|tres|cuatro)\) sanci(?:ón|ones) de carácter GRAVE/gi);
+  r.sanciones_leves = cnt(/(\d+|una|dos|tres) \((?:una|dos|tres|cuatro)\) sanci(?:ón|ones) de carácter LEVE/gi);
+  r.faceid_errores = num(g(/detectaron (\w+) identificaciones erróneas/));
+  r.ejercicio = g(/fue considerada (no satisfactoria|satisfactoria)/i);
+  const tab = t.slice(0, 9000);
+  r.tablero = [...tab.matchAll(/(\d\.\d?\.?) ([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\/\-–\.: ]+?) +(Cobertura completa|C\/ observaciones - Fallas|C\/ observaciones|C\/ novedades|S\/ modificaciones|Sin registro|Requiere Intervención|Regular|Varias|No Satisfactorio|Incompatibilidad|Satisfactorio|Bueno|Muy Bueno|Sin novedades) \d+/g)]
+     .map(m=>({item:(m[1]+' '+m[2]).replace(/\s+/g,' ').trim(), estado:m[3]})).filter((x,i,a)=>a.findIndex(y=>y.item.split(' ')[0]===x.item.split(' ')[0])===i);
+  return r;
+}
+
+const MESES_C=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+const AREAS={'1':'Auditoría y supervisión','2':'Personal','3':'Material y logística','4':'Sistemas tecnológicos','5':'Consignas y ejercicios','6':'Guardia y formalidades','7':'Seguridad del predio','8':'Necesidades y sugerencias'};
+// Puntajes por defecto de cada estado (editables en la solapa 4)
+const SCORES_SUG={'Cobertura completa':3,'Muy Bueno':3,'Satisfactorio':3,'Sin novedades':3,'S/ modificaciones':3,'Bueno':2,'C/ novedades':2,'C/ observaciones':2,'Regular':1,'C/ observaciones - Fallas':1,'Sin registro':1,'Incompatibilidad':1,'Requiere Intervención':0,'No Satisfactorio':0,'Varias':null};
+const CATS={abierto:['Abierto','d-neu'],mejora:['Mejora','d-good'],empeora:['Empeora','d-bad'],resuelto:['Resuelto','d-good']};
+
+/* ===================== Estado ===================== */
+// Todo vive sólo en memoria mientras la página está abierta: no se guarda nada en el navegador.
+let DATA={}, ZONES={}, PEND=[], NOTAS={}, CFG=cfgDefault(), OBJ='';
+function cfgDefault(){ return {std_sup:24, std_aud:4, std_hab:100, scores:{...SCORES_SUG}}; }
+function save(){}
+try{ localStorage.removeItem('ic_data'); localStorage.removeItem('ic_theme'); }catch(e){}   // borra lo que hayan guardado versiones anteriores
+const keys=()=>Object.keys(DATA).sort();
+const mLabel=k=>{const [y,m]=k.split('-');return MESES_C[+m-1]+' '+y;};
+
+/* ===================== Definición de indicadores ===================== */
+// agg: sum | last | avg | ratio(num/den·mult) | zone ; dir: up (más es mejor) | down | none
+// fmt: int | dec | pct (fracción) | pct1 (ya en %) | km | idx (0-100) | mes
+const IND = [
+ {g:'Auditoría', k:'visitas_auditoria', n:'Visitas de auditoría', agg:'sum', dir:'none', fmt:'int'},
+ {g:'Auditoría', k:'horas_auditoria', n:'Horas de auditoría en el predio', agg:'sum', dir:'none', fmt:'dec'},
+ {g:'Auditoría', k:'visitas_nocturnas', n:'Visitas de auditoría nocturnas', agg:'sum', dir:'up', fmt:'int'},
+ {g:'Auditoría', k:'cumpl_aud', n:'Cumplimiento del mínimo de visitas de auditoría', agg:'ratio', num:'visitas_auditoria', den:'_stdaud', dir:'up', fmt:'pct'},
+ {g:'Supervisión', k:'dias_supervisor', n:'Días con presencia del Supervisor', agg:'sum', dir:'up', fmt:'int'},
+ {g:'Supervisión', k:'dias_jefe_servicio', n:'Días con presencia del Jefe de Servicio', agg:'sum', dir:'up', fmt:'int'},
+ {g:'Supervisión', k:'dias_reemplazo', n:'Días con presencia de la VG a cargo (reemplazo)', agg:'sum', dir:'none', fmt:'int'},
+ {g:'Supervisión', k:'cob_estandar', n:'Cumplimiento del estándar de supervisión (Sup. + Jefe)', agg:'ratio', num:'_supjefe', den:'_stdsup', dir:'up', fmt:'pct'},
+ {g:'Personal', k:'dotacion', n:'Dotación asignada (carga manual)', agg:'last', dir:'none', fmt:'int'},
+ {g:'Personal', k:'bajas', n:'Bajas', agg:'sum', dir:'down', fmt:'int'},
+ {g:'Personal', k:'altas', n:'Altas', agg:'sum', dir:'none', fmt:'int'},
+ {g:'Personal', k:'saldo', n:'Saldo neto (altas − bajas)', agg:'sum', dir:'none', fmt:'int'},
+ {g:'Personal', k:'rotacion', n:'Tasa de rotación mensual (bajas / dotación)', agg:'ratio', num:'bajas', den:'dotacion', dir:'down', fmt:'pct'},
+ {g:'Personal', k:'hab_vigente', n:'% personal con credencial vigente', agg:'last', dir:'up', fmt:'pct1'},
+ {g:'Personal', k:'cumpl_hab', n:'Cumplimiento de habilitación (vigente / exigido)', agg:'last', dir:'up', fmt:'pct'},
+ {g:'Personal', k:'hab_tramite', n:'% personal con credencial en trámite', agg:'last', dir:'none', fmt:'pct1'},
+ {g:'Personal', k:'hab_no_iniciado', n:'% sin iniciar trámite (período de prueba)', agg:'last', dir:'down', fmt:'pct1'},
+ {g:'Personal', k:'hab_sin_credencial', n:'% sin credencial ni trámite', agg:'last', dir:'down', fmt:'pct1'},
+ {g:'Personal', k:'medidas_disciplinarias', n:'Medidas disciplinarias internas (empresa)', agg:'sum', dir:'none', fmt:'int'},
+ {g:'Incumplimientos', k:'pedidos_informe', n:'Pedidos de informe emitidos', agg:'sum', dir:'down', fmt:'int'},
+ {g:'Incumplimientos', k:'pi_30', n:'Pedidos de informe cada 30 días', agg:'ratio', num:'pedidos_informe', den:'_dias', mult:30, dir:'down', fmt:'dec'},
+ {g:'Incumplimientos', k:'sanciones_graves', n:'Sanciones graves resueltas', agg:'sum', dir:'down', fmt:'int'},
+ {g:'Incumplimientos', k:'sanciones_leves', n:'Sanciones leves resueltas', agg:'sum', dir:'down', fmt:'int'},
+ {g:'Incumplimientos', k:'faceid_errores', n:'Identificaciones erróneas FaceId (informadas)', agg:'sum', dir:'down', fmt:'int'},
+ {g:'Móviles', k:'km_auto', n:'Odómetro automóvil (al cierre)', agg:'last', dir:'none', fmt:'km'},
+ {g:'Móviles', k:'kmr_auto', n:'Km recorridos automóvil', agg:'sum', dir:'none', fmt:'km'},
+ {g:'Móviles', k:'kmr_cuatri_420', n:'Km recorridos cuatriciclo 420', agg:'sum', dir:'none', fmt:'km'},
+ {g:'Móviles', k:'kmr_cuatri_250', n:'Km recorridos cuatriciclo 250', agg:'sum', dir:'none', fmt:'km'},
+ {g:'Detección perimetral (ALIARA)', k:'aliara_eventos', n:'Eventos totales', agg:'sum', dir:'down', fmt:'int'},
+ {g:'Detección perimetral (ALIARA)', k:'ev_dia', n:'Eventos por día', agg:'ratio', num:'aliara_eventos', den:'_dias', dir:'down', fmt:'dec'},
+ {g:'Detección perimetral (ALIARA)', k:'aliara_alarmas', n:'Disparos de alarma', agg:'sum', dir:'down', fmt:'int'},
+ {g:'Detección perimetral (ALIARA)', k:'al_dia', n:'Disparos de alarma por día', agg:'ratio', num:'aliara_alarmas', den:'_dias', dir:'down', fmt:'dec'},
+ {g:'Detección perimetral (ALIARA)', k:'pct_alarma', n:'% de eventos que son alarma', agg:'ratio', num:'aliara_alarmas', den:'aliara_eventos', dir:'none', fmt:'pct'},
+ {g:'Detección perimetral (ALIARA)', k:'aliara_extraordinarios', n:'Alarmas con causa identificada', agg:'sum', dir:'none', fmt:'int'},
+ {g:'Detección perimetral (ALIARA)', k:'pct_extra', n:'% de alarmas con causa identificada', agg:'ratio', num:'aliara_extraordinarios', den:'aliara_alarmas', dir:'none', fmt:'pct'},
+ {g:'Detección perimetral (ALIARA)', k:'residual', n:'Alarmas residuales (sin causa identificada)', agg:'sum', dir:'down', fmt:'int'},
+ {g:'Detección perimetral (ALIARA)', k:'res_dia', n:'Alarmas residuales por día', agg:'ratio', num:'residual', den:'_dias', dir:'down', fmt:'dec'},
+ {g:'Detección perimetral (ALIARA)', k:'z_media', n:'Media de alarmas por zona', agg:'zone', zf:'mean', dir:'down', fmt:'dec'},
+ {g:'Detección perimetral (ALIARA)', k:'z_mediana', n:'Mediana de alarmas por zona', agg:'zone', zf:'median', dir:'down', fmt:'dec'},
+ {g:'Detección perimetral (ALIARA)', k:'z_sd', n:'Desvío estándar entre zonas', agg:'zone', zf:'sd', dir:'none', fmt:'dec'},
+ {g:'Detección perimetral (ALIARA)', k:'z_cv', n:'Coeficiente de variación entre zonas', agg:'zone', zf:'cv', dir:'down', fmt:'pct'},
+ {g:'Detección perimetral (ALIARA)', k:'cable', n:'Eventos de cable cortado', agg:'zone', zf:'cable', dir:'down', fmt:'int'},
+ {g:'Estado del tablero', k:'idx_tablero', n:'Índice de estado del tablero (0 a 100)', agg:'avg', dir:'up', fmt:'idx'},
+ {g:'Pendientes', k:'pend_abiertos', n:'Temas pendientes abiertos (al cierre)', agg:'last', dir:'down', fmt:'int'},
+ {g:'Pendientes', k:'pend_resueltos', n:'Temas resueltos en el período', agg:'sum', dir:'up', fmt:'int'},
+ {g:'Pendientes', k:'pend_antig', n:'Antigüedad promedio de los abiertos (al cierre)', agg:'last', dir:'down', fmt:'mes'},
+];
+const KPI_KEYS=['aliara_alarmas','residual','z_cv','cob_estandar','idx_tablero','pend_abiertos','pedidos_informe','hab_vigente'];
+
+/* ===================== Cálculos ===================== */
+const diasMes=k=>{const [y,m]=k.split('-').map(Number);return new Date(y,m,0).getDate();};
+function mesesEntre(a,b){const [y1,m1]=a.split('-').map(Number),[y2,m2]=b.split('-').map(Number);return (y2-y1)*12+(m2-m1);}
+const sum=a=>a.reduce((s,x)=>s+x,0);
+
+function idxTablero(tab){
+  const by={}; let s=0,n=0;
+  (tab||[]).forEach(t=>{ const sc=CFG.scores[t.estado]; if(sc==null||sc==='') return; const a=t.item.split('.')[0]; (by[a]=by[a]||[]).push(+sc); s+=+sc; n++; });
+  const areas={}; Object.keys(by).forEach(a=>areas[a]=sum(by[a])/by[a].length/3*100);
+  return {total:n?s/n/3*100:null, areas};
+}
+// Situación de un tema pendiente hasta el mes "hasta"
+function pendInfo(p,hasta){
+  const ms=Object.keys(p.est||{}).filter(k=>k<=hasta && p.est[k] && p.est[k].c).sort();
+  if(!ms.length) return null;
+  const inicio=(p.desde&&p.desde<ms[0])?p.desde:ms[0];
+  const last=ms[ms.length-1], cat=p.est[last].c;
+  let cierre=null;
+  if(cat==='resuelto'){ let i=ms.length-1; while(i>0&&p.est[ms[i-1]].c==='resuelto') i--; cierre=ms[i]; }
+  return {inicio,last,cat,cierre,abierto:cat!=='resuelto',meses:mesesEntre(inicio,cierre||hasta)+1};
+}
+function derivados(){
+  const ks=keys();
+  ks.forEach((k,i)=>{
+    const d=DATA[k];
+    d._supjefe=(d.dias_supervisor??0)+(d.dias_jefe_servicio??0); d._stdsup=CFG.std_sup; d._stdaud=CFG.std_aud; d._dias=diasMes(k);
+    d.saldo=(d.altas!=null&&d.bajas!=null)?d.altas-d.bajas:null;
+    d.residual=(d.aliara_alarmas!=null&&d.aliara_extraordinarios!=null)?d.aliara_alarmas-d.aliara_extraordinarios:null;
+    d.cumpl_hab=(d.hab_vigente!=null&&CFG.std_hab)?d.hab_vigente/CFG.std_hab:null;
+    const it=idxTablero(d.tablero); d.idx_tablero=it.total; d._idx_areas=it.areas;
+    const prev=ks[i-1], consecutivo=prev&&mesesEntre(prev,k)===1;
+    ['auto','cuatri_420','cuatri_250'].forEach(v=>{ const a=d['km_'+v], b=consecutivo?DATA[prev]['km_'+v]:null; d['kmr_'+v]=(a!=null&&b!=null)?a-b:null; });
+    const con=PEND.filter(p=>p.est&&p.est[k]&&p.est[k].c);
+    if(!con.length){ d.pend_abiertos=d.pend_resueltos=d.pend_antig=null; }
+    else{
+      const ab=con.filter(p=>p.est[k].c!=='resuelto');
+      d.pend_abiertos=ab.length;
+      d.pend_resueltos=con.filter(p=>{ if(p.est[k].c!=='resuelto') return false;
+        const pr=Object.keys(p.est).filter(x=>x<k&&p.est[x]&&p.est[x].c).sort().pop(); return !pr||p.est[pr].c!=='resuelto'; }).length;
+      const an=ab.map(p=>pendInfo(p,k)).filter(Boolean).map(x=>x.meses);
+      d.pend_antig=an.length?sum(an)/an.length:null;
+    }
+  });
+}
+function zoneStat(vec,f){ const n=vec.length, m=sum(vec)/n; const s=[...vec].sort((a,b)=>a-b);
+  const sd=Math.sqrt(sum(vec.map(x=>(x-m)**2))/(n-1));
+  return {mean:m, median:n%2?s[(n-1)/2]:(s[n/2-1]+s[n/2])/2, sd, cv:m?sd/m:null}[f]; }
+const tieneZonas=(k,metric)=>ZONES[k]&&ZONES[k][metric]&&ZONES[k][metric].some(x=>x!=null&&x!=='');
+function zoneVec(months,metric){ const ok=months.filter(k=>tieneZonas(k,metric)); if(!ok.length) return null;
+  const v=Array(20).fill(0); ok.forEach(k=>ZONES[k][metric].forEach((x,i)=>v[i]+=(+x||0))); return v; }
+function aggregate(ind, months){
+  const vals=months.map(k=>DATA[k]?.[ind.k]).filter(v=>v!=null&&!Number.isNaN(v));
+  switch(ind.agg){
+    case 'sum': return vals.length?sum(vals):null;
+    case 'avg': return vals.length?sum(vals)/vals.length:null;
+    case 'last': { for(let i=months.length-1;i>=0;i--){const v=DATA[months[i]]?.[ind.k]; if(v!=null&&!Number.isNaN(v)) return v;} return null; }
+    case 'ratio': { let n=0,dd=0,c=0; months.forEach(k=>{const a=DATA[k]?.[ind.num], b=DATA[k]?.[ind.den]; if(a!=null&&b){n+=a;dd+=b;c++;}}); return c?n/dd*(ind.mult||1):null; }
+    case 'zone': {
+      if(ind.zf==='cable'){ const v=zoneVec(months,'cable'); return v?sum(v):null; }
+      const v=zoneVec(months,'alarmas'); if(!v) return null;
+      return zoneStat(v,ind.zf);
+    }
+  }
+}
+const nf=(x,d)=>x.toLocaleString('es-AR',{minimumFractionDigits:d,maximumFractionDigits:d});
+function fmt(v,f){ if(v==null||Number.isNaN(v)) return '—';
+  if(f==='int') return nf(v,0); if(f==='km') return nf(v,0)+' km'; if(f==='dec') return nf(v,Math.abs(v)>=100?0:2);
+  if(f==='pct') return nf(v*100,1)+' %'; if(f==='pct1') return nf(v,1)+' %'; if(f==='idx') return nf(v,1);
+  if(f==='mes') return nf(v,1)+' meses'; return String(v); }
+function deltaCell(ind,a,b){
+  if(a==null||b==null) return {abs:'—',pct:'—',cls:'d-neu',raw:null,rawp:null,arrow:''};
+  const d=b-a; const dp=a!==0?d/Math.abs(a):null;
+  const sg=d>=0?'+':'';
+  let absTxt;
+  if(ind.fmt==='pct') absTxt=sg+nf(d*100,1)+' p.p.';
+  else if(ind.fmt==='pct1') absTxt=sg+nf(d,1)+' p.p.';
+  else if(ind.fmt==='idx') absTxt=sg+nf(d,1)+' pts';
+  else absTxt=sg+fmt(d,ind.fmt);
+  const pctTxt=dp==null?(d===0?'0 %':'n/c'):(sg+nf(dp*100,1)+' %');
+  let cls='d-neu', arrow=d>0?'▲':d<0?'▼':'●';
+  if(d!==0&&ind.dir!=='none'){ const good=(ind.dir==='up')===(d>0); cls=good?'d-good':'d-bad'; }
+  return {abs:absTxt,pct:pctTxt,cls,arrow,raw:d,rawp:dp};
+}
+
+/* ===================== Períodos ===================== */
+function buildPeriods(){
+  const g=$('gran').value; const ks=keys(); if(!ks.length) return [];
+  const conCarga=p=>({...p, loaded:p.months.filter(k=>DATA[k])});
+  if(g==='custom'){
+    const r=(f,t,lab)=>{ if(!f||!t) return null; if(t<f) [f,t]=[t,f]; const ms=[]; let [y,m]=f.split('-').map(Number);
+      for(let i=0;i<120;i++){ const k=y+'-'+String(m).padStart(2,'0'); ms.push(k); if(k>=t) break; m++; if(m>12){m=1;y++;} }
+      return conCarga({label:lab+' · '+mLabel(f)+(f!==t?' – '+mLabel(t):''), months:ms}); };
+    return [r($('aFrom').value,$('aTo').value,'A'), r($('bFrom').value,$('bTo').value,'B')].filter(Boolean);
+  }
+  const n=+g; const names={2:'Bimestre',3:'Trimestre',4:'Cuatrimestre',6:'Semestre'};
+  const map=new Map();
+  ks.forEach(k=>{ const [y,m]=k.split('-').map(Number); const idx=Math.floor((m-1)/n); const id=y+'-'+idx;
+    if(!map.has(id)){ const all=[]; for(let j=idx*n+1;j<=idx*n+n;j++) all.push(y+'-'+String(j).padStart(2,'0'));
+      const label = n===1?mLabel(k): n===12?('Año '+y): (names[n]+' '+(idx+1)+' · '+MESES_C[idx*n]+'–'+MESES_C[idx*n+n-1]+' '+y);
+      map.set(id,{label,months:all}); } });
+  return [...map.values()].map(conCarga);
+}
+const granLabel=()=>$('gran').selectedOptions[0].text;
+const incompleto=p=>p.loaded&&p.loaded.length<p.months.length;
+
+/* ===================== Render: carga ===================== */
+const RAW_ROWS=[
+ ['visitas_auditoria','Visitas de auditoría'],['horas_auditoria','Horas de auditoría'],['visitas_nocturnas','Visitas nocturnas'],
+ ['dias_supervisor','Días Supervisor'],['dias_jefe_servicio','Días Jefe de Servicio'],['dias_reemplazo','Días VG a cargo'],
+ ['bajas','Bajas'],['altas','Altas'],['hab_vigente','% credencial vigente'],['hab_tramite','% en trámite'],['hab_no_iniciado','% sin iniciar'],['hab_sin_credencial','% sin credencial'],
+ ['medidas_disciplinarias','Medidas disciplinarias'],['pedidos_informe','Pedidos de informe'],['sanciones_graves','Sanciones graves'],['sanciones_leves','Sanciones leves'],['faceid_errores','Errores FaceId'],
+ ['km_auto','Km automóvil'],['km_cuatri_420','Km cuatri 420'],['km_cuatri_250','Km cuatri 250'],
+ ['aliara_eventos','ALIARA eventos'],['aliara_alarmas','ALIARA alarmas'],['aliara_media_zona','Media por zona (informe)'],['aliara_desvio_zona','Desvío por zona (informe)'],['aliara_extraordinarios','Alarmas causa identificada'],
+ ['ejercicio','Resultado del ejercicio']];
+function renderCarga(){
+  const ks=keys();
+  $('months').innerHTML = ks.length? ks.map(k=>`<span class="mchip">${mLabel(k)} <span class="note">${esc(DATA[k]._file||'')}</span><button title="Quitar" data-del="${k}">×</button></span>`).join('') : '<span class="note">No hay informes cargados.</span>';
+  document.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{ delete DATA[b.dataset.del]; delete ZONES[b.dataset.del]; refresh(); });
+  if(!ks.length){ $('rawTable').innerHTML=''; return; }
+  let h='<table><thead><tr><th>Indicador</th>'+ks.map(k=>`<th>${mLabel(k)}</th>`).join('')+'</tr></thead><tbody>';
+  h+='<tr><td>Dotación asignada <span class="note">(carga manual)</span></td>'+ks.map(m=>`<td><input class="zin" type="number" min="0" data-dot="${m}" value="${DATA[m].dotacion??''}"></td>`).join('')+'</tr>';
+  RAW_ROWS.forEach(([k,n])=>{ h+=`<tr><td>${n}</td>`+ks.map(m=>{const v=DATA[m][k]; return `<td class="num">${v==null?'':(typeof v==='number'?v.toLocaleString('es-AR'):esc(v))}</td>`;}).join('')+'</tr>'; });
+  $('rawTable').innerHTML=h+'</tbody></table>';
+  $('rawTable').querySelectorAll('[data-dot]').forEach(inp=>inp.onchange=()=>{ DATA[inp.dataset.dot].dotacion=inp.value===''?null:+inp.value; refresh(); });
+}
+
+/* ===================== Render: comparativa ===================== */
+let evoChart, zChart, zDelta, idxChart;
+function cssv(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
+const SERIES=()=>['--s1','--s2','--s3','--s4','--s5','--s6','--s7','--s8'].map(cssv);
+function calcComp(){ const P=buildPeriods(); return {P, vals:IND.map(ind=>P.map(p=>aggregate(ind,p.months)))}; }
+function renderComp(){
+  $('descGran').textContent=granLabel();
+  $('stdSup').value=CFG.std_sup; $('stdAud').value=CFG.std_aud; $('stdHab').value=CFG.std_hab;
+  const {P,vals}=calcComp();
+  const box=$('compTable');
+  if(!P.length){ box.innerHTML='<p class="note" style="padding:12px">Cargá al menos un informe.</p>'; $('kpis').innerHTML=''; return; }
+  const L=P.length-1;
+  $('kpis').innerHTML = KPI_KEYS.map(k=>{ const i=IND.findIndex(x=>x.k===k), ind=IND[i]; const b=vals[i][L], a=L>0?vals[i][L-1]:null; const d=deltaCell(ind,a,b);
+    return `<div class="kpi"><div class="l">${ind.n}</div><div class="v">${fmt(b,ind.fmt)}</div>
+      <div>${L>0?`<span class="pill ${d.cls}">${d.arrow} ${d.pct}</span> <span class="p">${d.abs}</span>`:'<span class="p">sin período previo</span>'}</div>
+      <div class="p">${P[L].label}${L>0?' vs '+P[L-1].label:''}</div></div>`; }).join('');
+  let h='<table><thead><tr><th>Indicador</th>'+P.map(p=>`<th>${p.label}${incompleto(p)?`<br><span class="note">${p.loaded.length}/${p.months.length} meses</span>`:''}</th>`).join('');
+  for(let j=1;j<P.length;j++) h+=`<th>Δ ${j+1} vs ${j}</th><th>Δ %</th>`;
+  h+='</tr></thead><tbody>'; let g='';
+  IND.forEach((ind,i)=>{ if(ind.g!==g){g=ind.g; h+=`<tr class="grp"><td colspan="${1+P.length+2*(P.length-1)}">${g}</td></tr>`;}
+    h+=`<tr><td>${ind.n}</td>`+vals[i].map(v=>`<td class="num">${fmt(v,ind.fmt)}</td>`).join('');
+    for(let j=1;j<P.length;j++){ const d=deltaCell(ind,vals[i][j-1],vals[i][j]); h+=`<td class="num">${d.abs}</td><td><span class="pill ${d.cls}">${d.arrow} ${d.pct}</span></td>`; }
+    h+='</tr>'; });
+  box.innerHTML=h+'</tbody></table>';
+  if(P.some(incompleto)) box.insertAdjacentHTML('beforeend','<p class="note" style="padding:8px 10px;margin:0">Hay períodos incompletos: las sumas sólo incluyen los meses cargados, así que comparalos con cuidado (las tasas por día no se ven afectadas).</p>');
+  renderEvo(P);
+}
+function renderEvo(P){
+  const sel=$('evoSel'); if(!sel.options.length){ IND.forEach((ind,i)=>sel.add(new Option(ind.g+' · '+ind.n,i))); sel.value=IND.findIndex(x=>x.k==='aliara_alarmas'); }
+  P=P||buildPeriods(); const ind=IND[+sel.value]; if(!P.length||!window.Chart) return;
+  const data=P.map(p=>{const v=aggregate(ind,p.months); return v==null?null:(ind.fmt==='pct'?v*100:v);});
+  const c=SERIES(); if(evoChart) evoChart.destroy();
+  evoChart=new Chart($('evoChart'),{type:P.length>2?'line':'bar',
+    data:{labels:P.map(p=>p.label),datasets:[{label:ind.n,data,backgroundColor:c[0],borderColor:c[0],borderWidth:2,pointRadius:5,borderRadius:4,maxBarThickness:70,tension:.25}]},
+    options:chartOpts(ind.fmt==='pct'||ind.fmt==='pct1'?'%':'' , false)});
+}
+function chartOpts(unit,legend,yMax){
+  const tc=cssv('--text-2'), gc=cssv('--grid');
+  return {responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+    plugins:{legend:{display:legend,labels:{color:tc,boxWidth:12}},tooltip:{callbacks:{label:(ctx)=>`${ctx.dataset.label}: ${ctx.parsed.y==null?'—':ctx.parsed.y.toLocaleString('es-AR',{maximumFractionDigits:2})}${unit?' '+unit:''}`}}},
+    scales:{x:{ticks:{color:tc},grid:{display:false}},y:{beginAtZero:true,max:yMax,ticks:{color:tc},grid:{color:gc},border:{display:false}}}};
+}
+
+/* ===================== Render: ALIARA ===================== */
+function heatData(metric){
+  const ks=keys().filter(k=>tieneZonas(k,metric));
+  const per=ks.map(k=>{ const v=ZONES[k][metric].map(x=>+x||0); const t=sum(v); return {k,v,t,sh:v.map(x=>t?x/t:0)}; });
+  return {ks,per};
+}
+function rankingZonas(metric){
+  const {ks,per}=heatData(metric); if(!ks.length) return [];
+  const top=per.map(p=>{ const ord=p.v.map((x,i)=>[x,i]).filter(a=>a[0]>0).sort((a,b)=>b[0]-a[0]); if(!ord.length) return new Set();
+    const corte=ord[Math.min(2,ord.length-1)][0]; return new Set(ord.filter(a=>a[0]>=corte).map(a=>a[1])); });
+  const out=[];
+  for(let z=0;z<20;z++){ const n=top.filter(s=>s.has(z)).length; if(!n) continue;
+    let r=0; for(let i=top.length-1;i>=0&&top[i].has(z);i--) r++;
+    out.push({z, n, m:ks.length, racha:r, sh:sum(per.map(p=>p.sh[z]))/per.length}); }
+  return out.sort((a,b)=>b.n-a.n||b.racha-a.racha||b.sh-a.sh);
+}
+function renderAliara(){
+  const P=buildPeriods(); const metric=$('zMetric').value, view=$('zView').value; const c=SERIES();
+  const labels=Array.from({length:20},(_,i)=>'Z'+(i+1));
+  const vecs=P.map(p=>zoneVec(p.months,metric));
+  if(window.Chart){
+    const ds=P.map((p,j)=>{ const v=vecs[j]; if(!v) return null; const t=sum(v)||1;
+      return {label:p.label,data:view==='pct'?v.map(x=>+(x/t*100).toFixed(1)):v,backgroundColor:c[j%8],borderRadius:3,borderSkipped:false,maxBarThickness:22}; }).filter(Boolean);
+    if(zChart) zChart.destroy();
+    zChart=new Chart($('zChart'),{type:'bar',data:{labels,datasets:ds},options:chartOpts(view==='pct'?'%':'',true)});
+    const ok=vecs.map((v,j)=>v?j:null).filter(x=>x!=null);
+    if(zDelta){ zDelta.destroy(); zDelta=null; }
+    if(ok.length>=2){ const a=vecs[ok[ok.length-2]], b=vecs[ok[ok.length-1]]; const d=b.map((x,i)=>x-a[i]);
+      zDelta=new Chart($('zDelta'),{type:'bar',data:{labels,datasets:[{label:`${P[ok[ok.length-1]].label} − ${P[ok[ok.length-2]].label}`,data:d,backgroundColor:d.map(x=>x>0?cssv('--bad'):cssv('--good')),borderRadius:3,borderSkipped:false,maxBarThickness:22}]},options:chartOpts('',true)});
+    }
+  }
+  let h='<table><thead><tr><th>Período</th><th>Total</th><th>Media</th><th>Mediana</th><th>Desvío (n−1)</th><th>CV</th><th>Zona con más</th></tr></thead><tbody>';
+  P.forEach((p,j)=>{ const v=vecs[j]; if(!v){h+=`<tr><td>${p.label}</td><td colspan="6" class="note" style="text-align:left">sin datos por zona</td></tr>`;return;}
+    const t=sum(v), mx=v.indexOf(Math.max(...v));
+    h+=`<tr><td>${p.label}</td><td class="num">${fmt(t,'int')}</td><td class="num">${fmt(zoneStat(v,'mean'),'dec')}</td><td class="num">${fmt(zoneStat(v,'median'),'dec')}</td><td class="num">${fmt(zoneStat(v,'sd'),'dec')}</td><td class="num">${fmt(zoneStat(v,'cv'),'pct')}</td><td class="num">Z${mx+1} · ${t?fmt(v[mx]/t,'pct'):'—'}</td></tr>`; });
+  $('zStats').innerHTML=h+'</tbody></table>';
+  // Mapa de calor
+  const {ks:hk,per}=heatData(metric);
+  if(!hk.length) $('zHeat').innerHTML='<p class="note" style="padding:12px">Sin datos por zona.</p>';
+  else{ const mx=Math.max(...per.flatMap(p=>p.sh))||1;
+    let hh='<table class="heat"><thead><tr><th>Zona</th>'+hk.map(k=>`<th style="text-align:center">${mLabel(k)}</th>`).join('')+'</tr></thead><tbody>';
+    for(let z=0;z<20;z++){ hh+=`<tr><td>Z${z+1}</td>`+per.map(p=>{ const a=Math.round(p.sh[z]/mx*80);
+      return `<td class="num" style="background:color-mix(in srgb, var(--bad) ${a}%, transparent)">${p.v[z]} <span class="note">${fmt(p.sh[z],'pct')}</span></td>`; }).join('')+'</tr>'; }
+    hh+='<tr class="tot"><td>Total</td>'+per.map(p=>`<td class="num">${fmt(p.t,'int')}</td>`).join('')+'</tr>';
+    $('zHeat').innerHTML=hh+'</tbody></table>'; }
+  // Ranking
+  const rk=rankingZonas(metric);
+  $('zRank').innerHTML=rk.length?'<table><thead><tr><th>Zona</th><th>Meses en el top 3</th><th>Racha actual</th><th>Participación promedio</th></tr></thead><tbody>'+
+    rk.map(r=>`<tr><td>Z${r.z+1}</td><td class="num">${r.n} de ${r.m}</td><td class="num">${r.racha?r.racha+(r.racha===1?' mes':' meses'):'—'}</td><td class="num">${fmt(r.sh,'pct')}</td></tr>`).join('')+'</tbody></table>'
+    :'<p class="note" style="padding:12px">Sin datos por zona.</p>';
+  // Carga manual
+  const ks=keys();
+  let ih='<table><thead><tr><th>Mes</th><th>Métrica</th>'+labels.map(l=>`<th>${l}</th>`).join('')+'<th>Suma</th><th>Control</th></tr></thead><tbody>';
+  ks.forEach(k=>{ ZONES[k]=ZONES[k]||{alarmas:Array(20).fill(''),cable:Array(20).fill('')};
+    ['alarmas','cable'].forEach(mt=>{ const v=ZONES[k][mt]; const s=sum(v.map(x=>+x||0)); const ref=mt==='alarmas'?DATA[k].aliara_alarmas:null;
+      const ctl=mt!=='alarmas'?'':(v.every(x=>x===''||x==null)?'<span class="note">vacío</span>':(ref==null?'':(s===ref?'<span class="ok">✓</span>':`<span class="ko">≠ ${ref}</span>`)));
+      ih+=`<tr><td>${mLabel(k)}</td><td>${mt==='alarmas'?'Alarmas':'Cable cortado'}</td>`+v.map((x,i)=>`<td><input class="zin" type="number" min="0" data-k="${k}" data-m="${mt}" data-i="${i}" value="${x??''}"></td>`).join('')+`<td class="num">${s}</td><td>${ctl}</td></tr>`; }); });
+  $('zInputs').innerHTML=ih+'</tbody></table>';
+  $('zInputs').querySelectorAll('input').forEach(inp=>inp.onchange=()=>{ ZONES[inp.dataset.k][inp.dataset.m][+inp.dataset.i]=inp.value===''?'':+inp.value; save(); renderAliara(); renderComp(); renderHallazgos(); });
+}
+
+/* ===================== Render: estado ===================== */
+function tableroItems(){
+  const ks=keys(); const items=new Map();
+  ks.forEach(k=>(DATA[k].tablero||[]).forEach(t=>{ const code=t.item.split(' ')[0]; if(!items.has(code)) items.set(code,{item:t.item,e:{}}); items.get(code).e[k]=t.estado; }));
+  return [...items.values()];
+}
+const areasCargadas=()=>[...new Set(keys().flatMap(k=>Object.keys(DATA[k]._idx_areas||{})))].sort((a,b)=>+a-+b);
+const areaNom=a=>a+' · '+(AREAS[a]||'Área '+a);
+function renderEstado(){
+  const ks=keys();
+  // Índice
+  const areas=areasCargadas();
+  const cell=v=>v==null?'<td class="num">—</td>':`<td class="num" style="background:var(${v>=75?'--good-bg':v>=50?'--warn-bg':'--bad-bg'})">${fmt(v,'idx')}</td>`;
+  const sinPuntajes=!Object.values(CFG.scores).some(v=>v!=null&&v!=='');
+  if(!ks.length||!tableroItems().length) $('idxTable').innerHTML='<p class="note" style="padding:12px">Sin datos de tablero.</p>';
+  else if(sinPuntajes||!areas.length) $('idxTable').innerHTML='<p class="note" style="padding:12px">Definí el puntaje de cada estado (más abajo) para calcular el índice.</p>';
+  else $('idxTable').innerHTML='<table><thead><tr><th>Área</th>'+ks.map(k=>`<th>${mLabel(k)}</th>`).join('')+'</tr></thead><tbody>'+
+    areas.map(a=>`<tr><td>${areaNom(a)}</td>`+ks.map(k=>cell(DATA[k]._idx_areas?.[a])).join('')+'</tr>').join('')+
+    '<tr class="tot"><td>Índice general</td>'+ks.map(k=>cell(DATA[k].idx_tablero)).join('')+'</tr></tbody></table>';
+  if(window.Chart){ if(idxChart) idxChart.destroy(); const c=SERIES();
+    const ds=areas.map((a,i)=>({label:areaNom(a),data:ks.map(k=>DATA[k]._idx_areas?.[a]??null),borderColor:c[i%8],backgroundColor:c[i%8],borderWidth:1.5,pointRadius:3,tension:.2}));
+    ds.push({label:'Índice general',data:ks.map(k=>DATA[k].idx_tablero),borderColor:cssv('--text'),backgroundColor:cssv('--text'),borderWidth:3,pointRadius:5,tension:.2});
+    idxChart=new Chart($('idxChart'),{type:'line',data:{labels:ks.map(mLabel),datasets:ds},options:chartOpts('',true,100)}); }
+  // Puntajes
+  const est=new Set(Object.keys(CFG.scores)); ks.forEach(k=>(DATA[k].tablero||[]).forEach(t=>est.add(t.estado)));
+  if(!est.size){ $('scoreTable').innerHTML='<p class="note" style="padding:12px">Los estados aparecen cuando cargás un informe.</p>'; }
+  else $('scoreTable').innerHTML='<table><thead><tr><th>Estado</th><th>Puntaje (0 a 3)</th></tr></thead><tbody>'+
+    [...est].map(e=>`<tr><td>${esc(e)}</td><td><input class="zin" type="number" min="0" max="3" step="0.5" data-sc="${esc(e)}" value="${CFG.scores[e]??''}"></td></tr>`).join('')+'</tbody></table>';
+  $('scoreTable').querySelectorAll('[data-sc]').forEach(inp=>inp.onchange=()=>{ const v=inp.value===''?null:Math.max(0,Math.min(3,+inp.value)); CFG.scores[inp.dataset.sc]=v; refresh(); });
+  // Ítems
+  const its=tableroItems();
+  let h='<table><thead><tr><th>Ítem</th>'+ks.map(k=>`<th>${mLabel(k)}</th>`).join('')+'<th>Cambio</th></tr></thead><tbody>';
+  let changes=0;
+  its.forEach(r=>{ const es=ks.map(k=>r.e[k]||'—'); const ch=new Set(es.filter(x=>x!=='—')).size>1; if(ch) changes++;
+    h+=`<tr${ch?' style="background:var(--warn-bg)"':''}><td>${esc(r.item)}</td>`+es.map(e=>`<td>${esc(e)}${e!=='—'&&CFG.scores[e]!=null?` <span class="note">(${CFG.scores[e]})</span>`:''}</td>`).join('')+`<td>${ch?'<span class="pill d-warn">cambió</span>':''}</td></tr>`; });
+  $('tabTable').innerHTML=its.length? h+'</tbody></table>'+`<p class="note" style="padding:8px 10px;margin:0">${changes} de ${its.length} ítems cambiaron de estado en el rango cargado.</p>` : '<p class="note" style="padding:12px">Sin datos de tablero.</p>';
+  renderPend();
+}
+const mesesTxt=n=>n+(n===1?' mes':' meses');
+function renderPend(){
+  const ks=keys(), last=ks[ks.length-1], prev=ks[ks.length-2]; const box=$('pendTable');
+  const bc=$('btnPendCopy'); bc.hidden=!prev; if(prev) bc.textContent=`Completar ${mLabel(last)} con los temas abiertos de ${mLabel(prev)}`;
+  if(!ks.length){ box.innerHTML='<p class="note" style="padding:12px">Cargá al menos un informe.</p>'; $('pendResumen').textContent=''; return; }
+  const opt=c=>['',...Object.keys(CATS)].map(x=>`<option value="${x}"${x===c?' selected':''}>${x?CATS[x][0]:'—'}</option>`).join('');
+  let h=`<table class="pend"><thead><tr><th>Área</th><th>Tema</th><th>Abierto desde</th>${ks.map(k=>`<th>${mLabel(k)}</th>`).join('')}<th>Antigüedad</th><th>Situación</th><th></th></tr></thead><tbody>`;
+  PEND.forEach((p,i)=>{ const inf=pendInfo(p,last);
+    const ant=!inf?'—':inf.abierto?mesesTxt(inf.meses):`cerrado en ${mLabel(inf.cierre)} (${mesesTxt(inf.meses)})`;
+    const sit=inf?`<span class="pill ${CATS[inf.cat][1]}">${CATS[inf.cat][0]}</span>${inf.last!==last?`<br><span class="note">dato de ${mLabel(inf.last)}</span>`:''}`:'<span class="pill d-warn">sin dato</span>';
+    h+=`<tr><td><input type="text" data-i="${i}" data-f="area" value="${esc(p.area)}" style="min-width:95px"></td><td><input type="text" data-i="${i}" data-f="tema" value="${esc(p.tema)}" style="min-width:230px"></td><td><input type="month" data-i="${i}" data-f="desde" value="${p.desde||''}"></td>`+
+      ks.map(k=>{const x=(p.est||{})[k]||{}; return `<td class="mcol"><select data-i="${i}" data-k="${k}" data-f="c">${opt(x.c||'')}</select><input type="text" data-i="${i}" data-k="${k}" data-f="t" value="${esc(x.t||'')}" placeholder="detalle"></td>`;}).join('')+
+      `<td>${ant}</td><td>${sit}</td><td><button class="btn ghost small" data-delp="${i}" title="Quitar tema">×</button></td></tr>`; });
+  box.innerHTML=h+'</tbody></table>';
+  box.querySelectorAll('[data-f]').forEach(el=>el.onchange=()=>{
+    const p=PEND[+el.dataset.i], f=el.dataset.f, k=el.dataset.k; p.est=p.est||{};
+    if(k){ p.est[k]=p.est[k]||{c:'',t:''}; p.est[k][f]=el.value; if(!p.est[k].c&&!p.est[k].t) delete p.est[k]; } else p[f]=el.value;
+    derivados(); save(); renderComp(); renderHallazgos();
+    if(f==='c'||f==='desde') renderPend(); else pendResumen();
+  });
+  box.querySelectorAll('[data-delp]').forEach(b=>b.onclick=()=>{ const p=PEND[+b.dataset.delp]; if(confirm(`¿Quitar el tema "${p.tema||'sin nombre'}"?`)){ PEND.splice(+b.dataset.delp,1); refresh(); } });
+  pendResumen();
+}
+function pendResumen(){
+  const ks=keys(), last=ks[ks.length-1]; if(!last){ $('pendResumen').textContent=''; return; }
+  const inf=PEND.map(p=>pendInfo(p,last)).filter(Boolean);
+  const c=k=>inf.filter(x=>x.cat===k).length;
+  const ab=inf.filter(x=>x.abierto);
+  $('pendResumen').textContent=`${PEND.length} temas al ${mLabel(last)}: ${c('abierto')} abiertos sin cambios, ${c('mejora')} con mejora, ${c('empeora')} empeoran y ${c('resuelto')} resueltos. Antigüedad promedio de los abiertos: ${ab.length?fmt(sum(ab.map(x=>x.meses))/ab.length,'mes'):'—'}.`;
+}
+
+/* ===================== Hallazgos automáticos ===================== */
+function generarHallazgos(){
+  const P=buildPeriods();
+  if(P.length<2) return {msg:'Se necesitan al menos dos períodos para comparar. Cargá más meses o cambiá la agrupación en la solapa 2.'};
+  const A=P[P.length-2], B=P[P.length-1];
+  const secs=[];
+  const rows=IND.map(ind=>{ const a=aggregate(ind,A.months), b=aggregate(ind,B.months); return {ind,a,b,d:deltaCell(ind,a,b)}; });
+  const lin=r=>`${r.ind.n}: ${fmt(r.a,r.ind.fmt)} → ${fmt(r.b,r.ind.fmt)} (${r.d.abs}${r.d.pct!=='n/c'?'; '+r.d.pct:''})`;
+  const peso=r=>r.d.rawp==null?1:Math.abs(r.d.rawp);
+  const mej=rows.filter(r=>r.d.cls==='d-good').sort((x,y)=>peso(y)-peso(x));
+  const peo=rows.filter(r=>r.d.cls==='d-bad').sort((x,y)=>peso(y)-peso(x));
+  secs.push({t:'Mejoras más marcadas',tipo:'good',l:mej.length?mej.slice(0,6).map(lin):['Ningún indicador con sentido deseable mejoró.']});
+  secs.push({t:'Empeoramientos más marcados',tipo:'bad',l:peo.length?peo.slice(0,6).map(lin):['Ningún indicador con sentido deseable empeoró.']});
+  const conDato=rows.filter(r=>r.d.raw!=null), igual=conDato.filter(r=>r.d.raw===0);
+  secs.push({t:'Resumen de la comparación',l:[`${conDato.length} indicadores con dato en los dos períodos: ${mej.length} mejoran, ${peo.length} empeoran, ${igual.length} sin cambios y ${conDato.length-mej.length-peo.length-igual.length} cambian sin juicio de valor.`]});
+  // Tablero
+  const mA=A.months.filter(k=>DATA[k]).pop(), mB=B.months.filter(k=>DATA[k]).pop();
+  if(mA&&mB){ const its=tableroItems(); const ch=its.filter(r=>r.e[mA]&&r.e[mB]&&r.e[mA]!==r.e[mB]);
+    const l=(DATA[mA].idx_tablero!=null&&DATA[mB].idx_tablero!=null)?[`Índice general: ${fmt(DATA[mA].idx_tablero,'idx')} (${mLabel(mA)}) → ${fmt(DATA[mB].idx_tablero,'idx')} (${mLabel(mB)}).`]:[];
+    l.push(ch.length?`${ch.length} de ${its.length} ítems cambiaron de estado:`:`Ninguno de los ${its.length} ítems cambió de estado entre ${mLabel(mA)} y ${mLabel(mB)}.`);
+    ch.forEach(r=>l.push(`${r.item}: ${r.e[mA]} → ${r.e[mB]}`));
+    const ar=areasCargadas().map(a=>({a,x:DATA[mA]._idx_areas?.[a],y:DATA[mB]._idx_areas?.[a]})).filter(o=>o.x!=null&&o.y!=null&&o.x!==o.y);
+    ar.forEach(o=>l.push(`Área ${areaNom(o.a)}: ${fmt(o.x,'idx')} → ${fmt(o.y,'idx')}`));
+    secs.push({t:'Estado del tablero',l}); }
+  // Pendientes
+  if(mB){ const inf=PEND.map(p=>({p,i:pendInfo(p,mB)})).filter(o=>o.i);
+    if(inf.length){ const ab=inf.filter(o=>o.i.abierto), res=inf.filter(o=>o.i.cierre&&B.months.includes(o.i.cierre)),
+        nue=inf.filter(o=>B.months.includes(o.i.inicio)&&!A.months.includes(o.i.inicio)), emp=inf.filter(o=>o.p.est[mB]&&o.p.est[mB].c==='empeora');
+      const l=[`Al cierre de ${mLabel(mB)} hay ${ab.length} temas abiertos; en el período se resolvieron ${res.length}${nue.length?` y se abrieron ${nue.length} nuevos`:''}.`];
+      if(res.length) l.push('Resueltos: '+res.map(o=>o.p.tema).join('; ')+'.');
+      if(emp.length) l.push('Empeoran: '+emp.map(o=>o.p.tema).join('; ')+'.');
+      const viejos=[...ab].sort((x,y)=>y.i.meses-x.i.meses).slice(0,3);
+      if(viejos.length) l.push('Más antiguos: '+viejos.map(o=>`${o.p.tema} (${mesesTxt(o.i.meses)})`).join('; ')+'.');
+      secs.push({t:'Pendientes',l}); } }
+  // ALIARA
+  const vA=zoneVec(A.months,'alarmas'), vB=zoneVec(B.months,'alarmas');
+  if(vA&&vB){ const tA=sum(vA), tB=sum(vB); const mxA=vA.indexOf(Math.max(...vA)), mxB=vB.indexOf(Math.max(...vB));
+    const d=vB.map((x,i)=>({z:i,d:x-vA[i]}));
+    const sube=d.filter(o=>o.d>0).sort((x,y)=>y.d-x.d).slice(0,3), baja=d.filter(o=>o.d<0).sort((x,y)=>x.d-y.d).slice(0,3);
+    const l=[`Zona con más alarmas: Z${mxA+1} (${tA?fmt(vA[mxA]/tA,'pct'):'—'} del total) en ${A.label} y Z${mxB+1} (${tB?fmt(vB[mxB]/tB,'pct'):'—'}) en ${B.label}.`];
+    if(sube.length) l.push('Zonas que más suben: '+sube.map(o=>`Z${o.z+1} (+${o.d})`).join(', ')+'.');
+    if(baja.length) l.push('Zonas que más bajan: '+baja.map(o=>`Z${o.z+1} (${o.d})`).join(', ')+'.');
+    const rk=rankingZonas('alarmas').filter(r=>r.racha>=2).slice(0,3);
+    if(rk.length) l.push('Zonas que se repiten en el top 3: '+rk.map(r=>`Z${r.z+1} (${r.racha} meses seguidos)`).join(', ')+'.');
+    secs.push({t:'ALIARA por zona',l}); }
+  const aviso=(incompleto(A)||incompleto(B))?`Atención: ${[A,B].filter(incompleto).map(p=>`${p.label} tiene ${p.loaded.length} de ${p.months.length} meses cargados`).join(' y ')}. Las sumas no son comparables; mirá las tasas por día.`:null;
+  return {A,B,key:`${A.label} → ${B.label}`,secs,aviso};
+}
+function renderHallazgos(){
+  const H=generarHallazgos(); const box=$('findings'), ta=$('notas');
+  if(H.msg){ $('hallSub').textContent=H.msg; box.innerHTML=''; ta.disabled=true; ta.value=''; $('notasSub').textContent=''; return; }
+  $('hallSub').textContent=`Se generan solos comparando los dos últimos períodos de la agrupación elegida (${granLabel()}): ${H.B.label} frente a ${H.A.label}. Las mejoras y empeoramientos se ordenan por el tamaño del cambio porcentual.`;
+  box.innerHTML=(H.aviso?`<div class="find bad"><b>${esc(H.aviso)}</b></div>`:'')+
+    H.secs.map(s=>`<div class="find ${s.tipo||''}"><b>${s.t}</b><ul>${s.l.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`).join('');
+  ta.disabled=false;
+  if(ta.dataset.key!==H.key||document.activeElement!==ta){ ta.dataset.key=H.key; ta.value=NOTAS[H.key]||''; }
+  $('notasSub').textContent=`Notas para la comparación ${H.key}. Se guardan solas, una por cada par de períodos, y salen en el Excel y el PDF.`;
+}
+
+/* ===================== Descargas ===================== */
+function descargar(blob,nombre){
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=nombre; document.body.appendChild(a); a.click();
+  setTimeout(()=>{ try{URL.revokeObjectURL(a.href);}catch(e){} a.remove(); },3000);
+}
+const hoyTxt=()=>new Date().toLocaleDateString('es-AR');
+function nombreBase(){ const ks=keys(); const gl=granLabel().toLowerCase().split(' ')[0].normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  return `comparativa_${gl}_${ks[0]||''}_a_${ks[ks.length-1]||''}`; }
+const descStatus=s=>{ $('descStatus').textContent=s; };
+
+function xlVal(ind,v){ if(v==null||Number.isNaN(v)) return {v:null};
+  switch(ind.fmt){ case 'pct': return {v,f:'0.0%'}; case 'pct1': return {v:v/100,f:'0.0%'}; case 'int': return {v,f:'#,##0'};
+    case 'km': return {v,f:'#,##0 "km"'}; case 'dec': return {v,f:'#,##0.00'}; case 'idx': return {v,f:'0.0'}; case 'mes': return {v,f:'0.0 "meses"'}; } return {v}; }
+function xlDelta(ind,d){ if(d==null) return {v:null}; const pp='+0.0" p.p.";-0.0" p.p.";0.0" p.p."';
+  if(ind.fmt==='pct') return {v:d*100,f:pp}; if(ind.fmt==='pct1') return {v:d,f:pp};
+  const x=xlVal(ind,d); if(ind.fmt==='pct1') return x; const f=x.f||'0.00'; return {v:x.v,f:'+'+f+';-'+f+';'+f}; }
+async function bajarExcel(S){
+  S=S||new Set(['comparativa','datos','aliara','tablero','pendientes','hallazgos']);
+  if(!window.ExcelJS){ descStatus('No se pudo cargar ExcelJS (revisá la conexión a internet).'); return; }
+  const ks=keys(); if(!ks.length){ descStatus('No hay informes cargados.'); return; }
+  descStatus('Armando el Excel…');
+  const {P,vals}=calcComp(); const wb=new ExcelJS.Workbook(); wb.creator='Informes comparativos'; wb.created=new Date();
+  const AZ='FF1F5F8B', FILL={'d-good':'FFE6F4EA','d-bad':'FFFDECEA','d-neu':'FFECEBE7',grp:'FFF0EFEB',warn:'FFFFF4D6'};
+  const fill=c=>({type:'pattern',pattern:'solid',fgColor:{argb:c}});
+  const head=row=>{ row.eachCell(c=>{ c.font={bold:true,color:{argb:'FFFFFFFF'}}; c.fill=fill(AZ); c.alignment={vertical:'middle',wrapText:true}; }); row.height=32; };
+  const titulo=(ws,t,sub)=>{ ws.addRow([t]).font={bold:true,size:13}; ws.addRow([sub]).font={color:{argb:'FF52514E'}}; ws.addRow([]); };
+  const sub=`${OBJ?OBJ+' · ':''}Agrupación: ${granLabel()} · Meses cargados: ${mLabel(ks[0])} a ${mLabel(ks[ks.length-1])} · Generado el ${hoyTxt()}`;
+
+  let ws;
+  // 1 Comparativa
+  if(S.has('comparativa')){
+  ws=wb.addWorksheet('Comparativa',{views:[{state:'frozen',xSplit:2,ySplit:4}]});
+  titulo(ws,'Informes comparativos · Auditoría mensual',sub);
+  const hdr=['Grupo','Indicador',...P.map(p=>p.label+(incompleto(p)?` (${p.loaded.length}/${p.months.length} meses)`:''))];
+  for(let j=1;j<P.length;j++) hdr.push(`Δ ${P[j].label} vs ${P[j-1].label}`,'Δ %');
+  head(ws.addRow(hdr));
+  IND.forEach((ind,i)=>{
+    const cells=[ind.g,ind.n]; const fm=[null,null]; const cl=[];
+    vals[i].forEach(v=>{ const x=xlVal(ind,v); cells.push(x.v); fm.push(x.f); });
+    for(let j=1;j<P.length;j++){ const d=deltaCell(ind,vals[i][j-1],vals[i][j]); const x=xlDelta(ind,d.raw); cells.push(x.v,d.rawp); fm.push(x.f,'+0.0%;-0.0%;0.0%'); cl[cells.length-1]=d.raw==null?null:d.cls; }
+    const r=ws.addRow(cells); r.eachCell({includeEmpty:true},(c,n)=>{ if(fm[n-1]) c.numFmt=fm[n-1]; if(cl[n-1]) c.fill=fill(FILL[cl[n-1]]); });
+  });
+  ws.getColumn(1).width=26; ws.getColumn(2).width=52; for(let c=3;c<=hdr.length;c++) ws.getColumn(c).width=16;
+  ws.addRow([]); ws.addRow(['Δ % en verde: mejora según el sentido deseable del indicador; en rojo: empeora; en gris: sin juicio de valor.']).font={italic:true,color:{argb:'FF7C7A74'}};
+  }
+
+  // 2 Datos mensuales
+  if(S.has('datos')){
+  ws=wb.addWorksheet('Datos mensuales',{views:[{state:'frozen',xSplit:1,ySplit:4}]});
+  titulo(ws,'Indicadores extraídos por mes',sub);
+  head(ws.addRow(['Indicador',...ks.map(mLabel)]));
+  [['dotacion','Dotación asignada (carga manual)'],...RAW_ROWS].forEach(([k,n])=>{ const r=ws.addRow([n,...ks.map(m=>DATA[m][k]??null)]); r.eachCell((c,i)=>{ if(i>1&&typeof c.value==='number') c.numFmt=Number.isInteger(c.value)?'#,##0':'#,##0.00'; }); });
+  ws.getColumn(1).width=34; ks.forEach((_,i)=>ws.getColumn(i+2).width=14);
+  }
+
+  // 3 ALIARA
+  if(S.has('aliara')){
+  ws=wb.addWorksheet('ALIARA por zona',{views:[{state:'frozen',xSplit:1,ySplit:4}]});
+  titulo(ws,'Detección perimetral ALIARA por zona',sub);
+  ['alarmas','cable'].forEach(mt=>{
+    const {ks:zk,per}=heatData(mt); const nom=mt==='alarmas'?'Alarmas':'Cable cortado';
+    if(!zk.length){ ws.addRow([`${nom}: sin datos por zona`]); ws.addRow([]); return; }
+    head(ws.addRow([nom,...zk.map(mLabel),...zk.map(k=>'% '+mLabel(k))]));
+    for(let z=0;z<20;z++){ const r=ws.addRow(['Z'+(z+1),...per.map(p=>p.v[z]),...per.map(p=>p.sh[z])]);
+      per.forEach((p,i)=>{ const c=r.getCell(2+per.length+i); c.numFmt='0.0%'; if(p.sh[z]>0.05) c.fill=fill(p.sh[z]>=0.2?'FFF4B4B4':p.sh[z]>=0.1?'FFF8D2D2':'FFFCE9E9'); }); }
+    const t=ws.addRow(['Total',...per.map(p=>p.t)]); t.font={bold:true}; ws.addRow([]);
+    const rk=rankingZonas(mt);
+    if(rk.length){ head(ws.addRow([`${nom}: zonas en el top 3`,'Meses en el top 3','Meses cargados','Racha actual (meses)','Participación promedio']));
+      rk.forEach(r=>{ const x=ws.addRow(['Z'+(r.z+1),r.n,r.m,r.racha,r.sh]); x.getCell(5).numFmt='0.0%'; }); ws.addRow([]); }
+  });
+  ws.getColumn(1).width=24; for(let c=2;c<=30;c++) ws.getColumn(c).width=12;
+  }
+
+  // 4 Tablero
+  if(S.has('tablero')){
+  ws=wb.addWorksheet('Tablero',{views:[{state:'frozen',xSplit:1,ySplit:4}]});
+  titulo(ws,'Estado del tablero',sub);
+  head(ws.addRow(['Área',...ks.map(mLabel)]));
+  const idxFill=v=>v==null?null:fill(v>=75?'FFE6F4EA':v>=50?'FFFFF4D6':'FFFDECEA');
+  areasCargadas().forEach(a=>{ const r=ws.addRow([areaNom(a),...ks.map(k=>DATA[k]._idx_areas?.[a]??null)]); r.eachCell((c,i)=>{ if(i>1){ c.numFmt='0.0'; const f=idxFill(c.value); if(f) c.fill=f; } }); });
+  const rt=ws.addRow(['Índice general (0 a 100)',...ks.map(k=>DATA[k].idx_tablero??null)]); rt.font={bold:true}; rt.eachCell((c,i)=>{ if(i>1){ c.numFmt='0.0'; const f=idxFill(c.value); if(f) c.fill=f; } });
+  ws.addRow([]);
+  head(ws.addRow(['Ítem',...ks.map(mLabel),'¿Cambió?']));
+  tableroItems().forEach(it=>{ const es=ks.map(k=>it.e[k]||''); const ch=new Set(es.filter(Boolean)).size>1; const r=ws.addRow([it.item,...es,ch?'Sí':'']); if(ch) r.eachCell(c=>c.fill=fill(FILL.warn)); });
+  ws.addRow([]); head(ws.addRow(['Estado','Puntaje (0 a 3)']));
+  const scs=Object.entries(CFG.scores).filter(([e,v])=>v!=null);
+  if(scs.length) scs.forEach(([e,v])=>ws.addRow([e,v])); else ws.addRow(['Sin puntajes definidos: el índice no se calcula.']);
+  ws.getColumn(1).width=48; ks.forEach((_,i)=>ws.getColumn(i+2).width=24);
+  }
+
+  // 5 Pendientes
+  if(S.has('pendientes')){
+  ws=wb.addWorksheet('Pendientes',{views:[{state:'frozen',xSplit:2,ySplit:4}]});
+  const last=ks[ks.length-1];
+  titulo(ws,'Seguimiento de pendientes',sub);
+  head(ws.addRow(['Área','Tema','Abierto desde',...ks.flatMap(k=>[mLabel(k)+' · situación',mLabel(k)+' · detalle']),'Antigüedad (meses)','Situación al '+mLabel(last),'Mes de cierre']));
+  PEND.forEach(p=>{ const inf=pendInfo(p,last);
+    const r=ws.addRow([p.area,p.tema,p.desde?mLabel(p.desde):'',...ks.flatMap(k=>{const x=(p.est||{})[k]; return [x&&x.c?CATS[x.c][0]:'',x?x.t||'':''];}),inf?inf.meses:null,inf?CATS[inf.cat][0]:'sin dato',inf&&inf.cierre?mLabel(inf.cierre):'']);
+    const c=r.getCell(4+ks.length*2+1); if(inf) c.fill=fill(inf.cat==='empeora'?FILL['d-bad']:inf.cat==='abierto'?FILL['d-neu']:FILL['d-good']);
+    r.alignment={vertical:'top',wrapText:true}; });
+  ws.getColumn(1).width=16; ws.getColumn(2).width=44; ws.getColumn(3).width=14; for(let c=4;c<4+ks.length*2;c++) ws.getColumn(c).width=(c-4)%2?36:14;
+  ws.getColumn(4+ks.length*2).width=14; ws.getColumn(5+ks.length*2).width=16; ws.getColumn(6+ks.length*2).width=14;
+  }
+
+  // 6 Hallazgos
+  if(S.has('hallazgos')){
+  ws=wb.addWorksheet('Hallazgos'); ws.getColumn(1).width=140;
+  titulo(ws,'Hallazgos',sub);
+  const H=generarHallazgos();
+  if(H.msg) ws.addRow([H.msg]);
+  else{ ws.addRow([`Comparación: ${H.B.label} frente a ${H.A.label}`]).font={bold:true};
+    if(H.aviso) ws.addRow([H.aviso]).font={color:{argb:'FFC62828'}};
+    H.secs.forEach(s=>{ ws.addRow([]); ws.addRow([s.t]).font={bold:true,color:{argb:AZ}}; s.l.forEach(x=>ws.addRow(['• '+x]).alignment={wrapText:true}); });
+    const nt=NOTAS[H.key]; if(nt&&nt.trim()){ ws.addRow([]); ws.addRow(['Notas del analista']).font={bold:true,color:{argb:AZ}}; nt.split('\n').filter(x=>x.trim()).forEach(x=>ws.addRow([x]).alignment={wrapText:true}); } }
+  }
+
+  const buf=await wb.xlsx.writeBuffer();
+  descargar(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),nombreBase()+(S.size<6?'_seleccion':'')+'.xlsx');
+  descStatus('Excel descargado.');
+}
+
+const pdfT=s=>String(s??'').replace(/Δ/g,'Var.').replace(/▲/g,'+').replace(/▼/g,'-').replace(/●/g,'=').replace(/→/g,'->').replace(/[−–—]/g,'-')
+  .replace(/≈/g,'aprox.').replace(/≠/g,'distinto de').replace(/✓/g,'OK').replace(/…/g,'...').replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/\u00a0|\u202f/g,' ').replace(/[^\x00-\xFF]/g,'');
+function bajarPdf(S){
+  S=S||new Set(['comparativa','datos','aliara','tablero','pendientes','hallazgos']);
+  if(!window.jspdf){ descStatus('No se pudo cargar jsPDF (revisá la conexión a internet).'); return; }
+  const ks=keys(); if(!ks.length){ descStatus('No hay informes cargados.'); return; }
+  const {jsPDF}=window.jspdf; const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+  if(typeof doc.autoTable!=='function'){ descStatus('No se pudo cargar el complemento de tablas del PDF.'); return; }
+  const W=doc.internal.pageSize.getWidth(), Hh=doc.internal.pageSize.getHeight(), T=pdfT;
+  const AZ=[31,95,139], COL={'d-good':[[230,244,234],[26,127,55]],'d-bad':[[253,236,234],[198,40,40]],'d-neu':[[236,235,231],[82,81,78]]};
+  const base={theme:'grid',styles:{fontSize:7.5,cellPadding:1.3,overflow:'linebreak',lineColor:[222,220,214],lineWidth:0.1},headStyles:{fillColor:AZ,textColor:255,fontStyle:'bold'},margin:{left:12,right:12,bottom:14}};
+  let y=14;
+  const salto=(n)=>{ if(y>Hh-(n||25)){ doc.addPage(); y=16; } };
+  const tit=s=>{ salto(30); doc.setFont('helvetica','bold'); doc.setFontSize(12); doc.setTextColor(31,95,139); doc.text(T(s),12,y); doc.setTextColor(0); y+=3; };
+  const after=()=>{ y=doc.lastAutoTable.finalY+9; };
+  const parr=(s,est)=>{ doc.setFont('helvetica',est==='b'?'bold':'normal'); doc.setFontSize(est==='b'?9.5:8.8); const ls=doc.splitTextToSize(T(s),W-28);
+    ls.forEach(l=>{ salto(14); doc.text(l,est==='li'?16:12,y); y+=4.1; }); };
+
+  doc.setFont('helvetica','bold'); doc.setFontSize(15); doc.text(T('Informes comparativos · Auditoría mensual'),12,y); y+=6;
+  doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(82,81,78);
+  doc.text(T(`${OBJ?OBJ+' · ':''}Agrupación: ${granLabel()} · Meses cargados: ${mLabel(ks[0])} a ${mLabel(ks[ks.length-1])} · Generado el ${hoyTxt()}`),12,y); doc.setTextColor(0); y+=9;
+
+  const {P,vals}=calcComp(); const L=P.length-1;
+  if(S.has('comparativa')){
+  // KPIs
+  tit(`Indicadores principales · ${P[L].label}${L>0?' frente a '+P[L-1].label:''}`);
+  const kb=[], km=[];
+  KPI_KEYS.forEach(k=>{ const i=IND.findIndex(x=>x.k===k), ind=IND[i]; const b=vals[i][L], a=L>0?vals[i][L-1]:null; const d=deltaCell(ind,a,b);
+    kb.push([T(ind.n),T(fmt(a,ind.fmt)),T(fmt(b,ind.fmt)),T(d.abs),T(d.pct)]); km.push(d.raw==null?null:d.cls); });
+  doc.autoTable({...base,startY:y,head:[['Indicador',T(L>0?P[L-1].label:'Anterior'),T(P[L].label),'Var. absoluta','Var. %']],body:kb,
+    columnStyles:{0:{cellWidth:110},1:{halign:'right'},2:{halign:'right'},3:{halign:'right'},4:{halign:'right'}},
+    didParseCell:dt=>{ if(dt.section==='body'&&dt.column.index===4&&km[dt.row.index]){ const c=COL[km[dt.row.index]]; dt.cell.styles.fillColor=c[0]; dt.cell.styles.textColor=c[1]; dt.cell.styles.fontStyle='bold'; } } });
+  after();
+
+  // Comparativa
+  const Pv=P.length>8?P.slice(-8):P, off=P.length-Pv.length;
+  tit('Comparativa por período'+(P.length>8?' (últimos 8 períodos; el Excel tiene todos)':''));
+  const conD=P.length>=2;
+  const hd=['Indicador',...Pv.map(p=>T(p.label+(incompleto(p)?` (${p.loaded.length}/${p.months.length})`:'')))]; if(conD) hd.push('Var. abs.\núltimo','Var. %\núltimo');
+  const body=[], meta=[]; let g='';
+  IND.forEach((ind,i)=>{ if(ind.g!==g){ g=ind.g; body.push([{content:T(g),colSpan:hd.length,styles:{fillColor:[240,239,235],fontStyle:'bold'}}]); meta.push(null); }
+    const row=[T(ind.n),...Pv.map((p,j)=>T(fmt(vals[i][j+off],ind.fmt)))];
+    if(conD){ const d=deltaCell(ind,vals[i][L-1],vals[i][L]); row.push(T(d.abs),T(d.pct)); meta.push(d.raw==null?null:d.cls); } else meta.push(null);
+    body.push(row); });
+  const cs={0:{cellWidth:78}}; for(let c=1;c<hd.length;c++) cs[c]={halign:'right'};
+  doc.autoTable({...base,startY:y,head:[hd],body,columnStyles:cs,styles:{...base.styles,fontSize:Pv.length>5?6.6:7.3},
+    didParseCell:dt=>{ if(conD&&dt.section==='body'&&dt.column.index===hd.length-1&&meta[dt.row.index]){ const c=COL[meta[dt.row.index]]; dt.cell.styles.fillColor=c[0]; dt.cell.styles.textColor=c[1]; dt.cell.styles.fontStyle='bold'; } } });
+  after();
+  if(P.some(incompleto)){ parr('Hay períodos incompletos (entre paréntesis, meses cargados sobre meses del período): las sumas sólo incluyen los meses cargados.'); y+=4; }
+  }
+  const kv=ks.length>10?ks.slice(-10):ks;
+
+  // Datos mensuales
+  if(S.has('datos')){
+    tit('Datos mensuales extraídos'+(ks.length>10?' · últimos 10 meses':''));
+    const db=[['dotacion','Dotación asignada (carga manual)'],...RAW_ROWS].map(([k,n])=>[T(n),...kv.map(m=>{ const v=DATA[m][k]; return v==null?'':T(typeof v==='number'?v.toLocaleString('es-AR'):v); })]);
+    const cs2={0:{cellWidth:70}}; kv.forEach((_,i)=>cs2[i+1]={halign:'right'});
+    doc.autoTable({...base,startY:y,head:[['Indicador',...kv.map(mLabel)]],body:db,columnStyles:cs2}); after();
+  }
+
+  // ALIARA
+  if(S.has('aliara')){
+    const vecs=P.map(p=>zoneVec(p.months,'alarmas'));
+    tit('ALIARA · alarmas por zona');
+    if(!vecs.some(Boolean)){ y+=3; parr('Sin datos por zona cargados.'); y+=4; }
+    else{
+      const zb=P.map((p,j)=>{ const v=vecs[j]; if(!v) return [T(p.label),{content:'sin datos por zona',colSpan:6}];
+        const t=sum(v), mx=v.indexOf(Math.max(...v));
+        return [T(p.label),T(fmt(t,'int')),T(fmt(zoneStat(v,'mean'),'dec')),T(fmt(zoneStat(v,'median'),'dec')),T(fmt(zoneStat(v,'sd'),'dec')),T(fmt(zoneStat(v,'cv'),'pct')),T(`Z${mx+1} · ${t?fmt(v[mx]/t,'pct'):'-'}`)]; });
+      doc.autoTable({...base,startY:y,head:[['Período','Total','Media','Mediana','Desvío (n-1)','CV','Zona con más']],body:zb,columnStyles:{1:{halign:'right'},2:{halign:'right'},3:{halign:'right'},4:{halign:'right'},5:{halign:'right'},6:{halign:'right'}}}); after();
+      const {ks:hk,per}=heatData('alarmas'); const hv=hk.length>10?hk.length-10:0;
+      tit('Participación de cada zona en el total del mes'+(hv?' · últimos 10 meses':''));
+      const pv=per.slice(hv); const mxs=Math.max(...pv.flatMap(p=>p.sh))||1;
+      const hb=Array.from({length:20},(_,z)=>['Z'+(z+1),...pv.map(p=>T(`${p.v[z]} (${fmt(p.sh[z],'pct')})`))]);
+      doc.autoTable({...base,startY:y,head:[['Zona',...hk.slice(hv).map(mLabel)]],body:hb,styles:{...base.styles,fontSize:7,cellPadding:0.9},
+        didParseCell:dt=>{ if(dt.section==='body'&&dt.column.index>0){ dt.cell.styles.halign='center'; const sh=pv[dt.column.index-1].sh[dt.row.index]/mxs; if(sh>0.05){ const a=Math.round(255-sh*120); dt.cell.styles.fillColor=[255,a,a]; } } } }); after();
+      const rk=rankingZonas('alarmas');
+      if(rk.length){ tit('Zonas recurrentes en el top 3');
+        doc.autoTable({...base,startY:y,head:[['Zona','Meses en el top 3','Racha actual','Participación promedio']],body:rk.map(r=>['Z'+(r.z+1),`${r.n} de ${r.m}`,r.racha?mesesTxt(r.racha):'-',T(fmt(r.sh,'pct'))]),tableWidth:150}); after(); }
+    }
+  }
+
+  // Tablero
+  const areas=areasCargadas();
+  if(S.has('tablero')&&!areas.length&&tableroItems().length){ tit('Estado del tablero'); y+=3; parr('Sin puntajes definidos para los estados: el índice no se calcula.'); y+=4; }
+  if(S.has('tablero')&&areas.length){ tit('Índice de estado del tablero por área (0 a 100)'+(ks.length>10?' · últimos 10 meses':''));
+    const ib=areas.map(a=>[T(areaNom(a)),...kv.map(k=>T(fmt(DATA[k]._idx_areas?.[a],'idx')))]);
+    ib.push([{content:'Índice general',styles:{fontStyle:'bold'}},...kv.map(k=>({content:T(fmt(DATA[k].idx_tablero,'idx')),styles:{fontStyle:'bold'}}))]);
+    const iv=[...areas.map(a=>kv.map(k=>DATA[k]._idx_areas?.[a])),kv.map(k=>DATA[k].idx_tablero)];
+    doc.autoTable({...base,startY:y,head:[['Área',...kv.map(mLabel)]],body:ib,columnStyles:{0:{cellWidth:70}},
+      didParseCell:dt=>{ if(dt.section==='body'&&dt.column.index>0){ const v=iv[dt.row.index]?.[dt.column.index-1]; dt.cell.styles.halign='right'; if(v!=null) dt.cell.styles.fillColor=v>=75?[230,244,234]:v>=50?[255,244,214]:[253,236,234]; } } });
+    after();
+    const its=tableroItems(); const ch=its.filter(r=>new Set(kv.map(k=>r.e[k]).filter(Boolean)).size>1);
+    if(ch.length){ tit('Ítems del tablero que cambiaron de estado');
+      doc.autoTable({...base,startY:y,head:[['Ítem',...kv.map(mLabel)]],body:ch.map(r=>[T(r.item),...kv.map(k=>T(r.e[k]||'-'))]),columnStyles:{0:{cellWidth:80}}}); after(); }
+    else { parr(`Ningún ítem del tablero cambió de estado (${its.length} ítems).`); y+=4; }
+  }
+  if(S.has('tablero')&&!areas.length){ const its=tableroItems(); const ch=its.filter(r=>new Set(kv.map(k=>r.e[k]).filter(Boolean)).size>1);
+    if(ch.length){ tit('Ítems del tablero que cambiaron de estado'); doc.autoTable({...base,startY:y,head:[['Ítem',...kv.map(mLabel)]],body:ch.map(r=>[T(r.item),...kv.map(k=>T(r.e[k]||'-'))]),columnStyles:{0:{cellWidth:80}}}); after(); } }
+
+  // Pendientes
+  const last=ks[ks.length-1];
+  const pr=PEND.map(p=>({p,i:pendInfo(p,last)})).filter(o=>o.i).sort((a,b)=>(a.i.abierto===b.i.abierto?0:a.i.abierto?-1:1)||b.i.meses-a.i.meses);
+  if(S.has('pendientes')&&pr.length){ tit(`Seguimiento de pendientes al ${mLabel(last)}`);
+    const pb=pr.map(o=>{ const e=o.p.est[o.i.last]||{}; return [T(o.p.area),T(o.p.tema),T(o.i.abierto?mesesTxt(o.i.meses):`cerrado en ${mLabel(o.i.cierre)} (${mesesTxt(o.i.meses)})`),T(CATS[o.i.cat][0]),T(e.t||'')]; });
+    doc.autoTable({...base,startY:y,head:[['Área','Tema','Antigüedad','Situación','Detalle del último mes con dato']],body:pb,columnStyles:{0:{cellWidth:24},1:{cellWidth:80},2:{cellWidth:38},3:{cellWidth:22}},
+      didParseCell:dt=>{ if(dt.section==='body'&&dt.column.index===3){ const c=pr[dt.row.index].i.cat; const k=c==='empeora'?'d-bad':c==='abierto'?'d-neu':'d-good'; dt.cell.styles.fillColor=COL[k][0]; dt.cell.styles.textColor=COL[k][1]; dt.cell.styles.fontStyle='bold'; } } });
+    after(); }
+
+  // Hallazgos
+  if(S.has('hallazgos')){
+  const H=generarHallazgos();
+  tit('Hallazgos'); y+=3;
+  if(H.msg) parr(H.msg);
+  else{ parr(`Comparación: ${H.B.label} frente a ${H.A.label}`,'b'); if(H.aviso) parr(H.aviso); y+=1;
+    H.secs.forEach(s=>{ y+=1.5; parr(s.t,'b'); s.l.forEach(x=>parr('- '+x,'li')); });
+    const nt=NOTAS[H.key]; if(nt&&nt.trim()){ y+=4; tit('Notas del analista'); y+=3; nt.split('\n').filter(x=>x.trim()).forEach(x=>{ parr(x); y+=1; }); } }
+  }
+
+  const n=doc.getNumberOfPages();
+  for(let i=1;i<=n;i++){ doc.setPage(i); doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(124,122,116);
+    doc.text(T(`Informes comparativos · ${granLabel()}`),12,Hh-7); doc.text(`Página ${i} de ${n}`,W-12,Hh-7,{align:'right'}); }
+  descargar(doc.output('blob'),nombreBase()+(S.size<6?'_seleccion':'')+'.pdf');
+  descStatus('PDF descargado.');
+}
+function bajarCsv(){
+  const {P,vals}=calcComp(); if(!P.length){ descStatus('No hay informes cargados.'); return; }
+  const rows=[['Grupo','Indicador',...P.map(p=>p.label)]];
+  IND.forEach((ind,i)=>rows.push([ind.g,ind.n,...vals[i].map(v=>v==null?'':(ind.fmt==='pct'?(v*100).toFixed(2):(+v.toFixed(4))).toString().replace('.',','))]));
+  const csv='\ufeff'+rows.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(';')).join('\n');
+  descargar(new Blob([csv],{type:'text/csv'}),nombreBase()+'.csv'); descStatus('CSV descargado.');
+}
+
+/* ===================== Lectura de las tablas por zona (imágenes) ===================== */
+/*ZONAS-INI*/
+// Las tablas "Alarma Zona" y "Cable Cortado por Zona" vienen como imagen dentro del PDF.
+// Se detecta la grilla de 20 columnas y cada dígito se reconoce comparándolo con plantillas
+// de la tipografía del informe (sólo formas de dígitos, sin datos).
+const ZTPL_RAW={"0":["f0fc6e61b0d86c3619bafd3c","1c1f8dcc763b1d8ec7371f870","4f2fc6e61b0d86c3619b8fc3c"],"1":["181c1e030180c06030183e1f0","181c1e030180c06030183f9fc"],"2":["f0fcc3018383c1e1e1c3ffff","f0fcc3018383c1e9e5c1feff","1c1f98c06070783c38383f9fc","1c1f98e07070783c38383fdfe"],"3":["f0fcc3018383c1e01b0fff7e","1c1f98e07070783c0763bfcfc"],"4":["70787c2e373399cfe7f0381c","70787c2e373399cff7f8381c"],"5":["3f1f8c05e3701c0e07639f8f0"],"6":["f0fcc3603f9feff61b0eff3e","f0fdc3e03f9feff61b0eff3e","1c1f98ec07f3fdfec7639fc7c"],"7":["7f3f80c0e070603018180c0c0","7fbfc0c0e070603018180c0c0"],"8":["f8dc43371f986c361b0efd3c","1f1b88e6e3f31d8ec7639f870"],"9":["3c3f98ec77f9fcfe07639f8f0"]};
+const ZNW=9, ZNH=11;
+const ZTPL=Object.entries(ZTPL_RAW).flatMap(([ch,hs])=>hs.map(h=>({ch,v:BigInt('0x'+h).toString(2).padStart(ZNW*ZNH,'0').split('').map(Number)})));
+function zGrp(a){ const g=[]; for(const v of a){ if(g.length&&v-g[g.length-1][1]<=1) g[g.length-1][1]=v; else g.push([v,v]); } return g; }
+function zBin(img){ // img: {width,height,data,kind}
+  const w=img.width,h=img.height,d=img.data,B=new Uint8Array(w*h);
+  if(img.kind===1){ const rb=Math.ceil(w/8); for(let y=0;y<h;y++) for(let x=0;x<w;x++) B[y*w+x]=((d[y*rb+(x>>3)]>>(7-(x&7)))&1)?0:1; return {w,h,B}; }
+  const st=img.kind===3?4:3;
+  for(let i=0;i<w*h;i++){ const r=d[i*st],g=d[i*st+1],b=d[i*st+2]; B[i]=(0.299*r+0.587*g+0.114*b)<110?1:0; }
+  return {w,h,B};
+}
+function zLeerTabla(img){
+  const {w,h,B}=zBin(img); const at=(x,y)=>B[y*w+x];
+  const rowSum=y=>{ let s=0; for(let x=0;x<w;x++) s+=at(x,y); return s; };
+  const H=zGrp([...Array(h).keys()].filter(y=>rowSum(y)>0.6*w));
+  const rows=[]; for(let i=0;i<H.length-1;i++) if(H[i+1][0]-H[i][1]>4) rows.push([H[i][1]+1,H[i+1][0]-1]);
+  if(rows.length<2) return null;
+  const [y0,y1]=rows[rows.length-1];
+  const colSum=(x,a,b)=>{ let s=0; for(let y=a;y<=b;y++) s+=at(x,y); return s; };
+  const V=zGrp([...Array(w).keys()].filter(x=>colSum(x,y0,y1)>0.8*(y1-y0+1)));
+  const cells=[]; for(let i=0;i<V.length-1;i++) if(V[i+1][0]-V[i][1]>3) cells.push([V[i][1]+1,V[i+1][0]-1]);
+  if(cells.length!==20) return null;
+  const ya=y0+1, yb=y1-1;
+  const valores=cells.map(([xa,xb])=>{
+    xa++; xb--;
+    const cols=[]; for(let x=xa;x<=xb;x++) if(colSum(x,ya,yb)) cols.push(x);
+    const runs=[];
+    for(const [a,b] of zGrp(cols)){
+      const ys=[]; for(let y=ya;y<=yb;y++){ for(let x=a;x<=b;x++) if(at(x,y)){ ys.push(y); break; } }
+      const hh=ys[ys.length-1]-ys[0]+1, pitch=hh*0.78;
+      const n=hh>=5?Math.max(1,Math.round((b-a+2)/pitch)):1;
+      if(n===1){ runs.push([a,b]); continue; }
+      const cuts=[a];
+      for(let k=1;k<n;k++){ const t=a+(b-a+1)*k/n; let best=null,bs=1e9;
+        for(let x=Math.floor(t)-2;x<=Math.floor(t)+2;x++){ const sc=colSum(x,ya,yb)*10+Math.abs(x-t); if(sc<bs){bs=sc;best=x;} } cuts.push(best); }
+      cuts.push(b+1);
+      for(let k=0;k<n;k++) runs.push([cuts[k],cuts[k+1]-1]);
+    }
+    let txt='';
+    for(let [a,b] of runs){
+      const xs=[]; for(let x=a;x<=b;x++) if(colSum(x,ya,yb)) xs.push(x); if(!xs.length) continue;
+      a=xs[0]; b=xs[xs.length-1];
+      const ys=[]; for(let y=ya;y<=yb;y++){ for(let x=a;x<=b;x++) if(at(x,y)){ ys.push(y); break; } }
+      const c=ys[0], dd=ys[ys.length-1];
+      if(dd-c<4){ txt+=','; continue; }
+      const sc=(dd-c+1)/ZNH, v=[];
+      for(let j=0;j<ZNH;j++) for(let i=0;i<ZNW;i++){ const xx=a+Math.floor((i+.5)*sc), yy=c+Math.floor((j+.5)*sc); v.push(xx<=b?at(xx,yy):0); }
+      let best=null,bd=1e9; for(const t of ZTPL){ let dist=0; for(let q=0;q<v.length;q++) if(t.v[q]!==v[q]) dist++; if(dist<bd){bd=dist;best=t.ch;} }
+      txt+=best;
+    }
+    return txt;
+  });
+  return valores;
+}
+function zImagen(page,name){
+  return new Promise(res=>{ const ok=o=>res(o||null);
+    try{ if(page.objs.has(name)) return ok(page.objs.get(name)); page.objs.get(name,ok); }catch(e){
+      try{ if(page.commonObjs.has(name)) return ok(page.commonObjs.get(name)); page.commonObjs.get(name,ok); }catch(e2){ res(null); } }
+    setTimeout(()=>res(null),8000); });
+}
+async function leerZonas(doc,textos,alarmasTexto){
+  // Páginas a revisar: desde la que menciona el total de eventos de la plataforma, más las siguientes
+  let ini=textos.findIndex(t=>/total aproximado de [\d.]+ eventos/.test(t.replace(/\s+/g,' ')));
+  const paginas=ini>=0?[...Array(Math.min(8,doc.numPages-ini)).keys()].map(i=>ini+1+i):[...Array(doc.numPages).keys()].map(i=>i+1);
+  const tablas=[];
+  for(const n of paginas){
+    const page=await doc.getPage(n); const ops=await page.getOperatorList();
+    for(let i=0;i<ops.fnArray.length;i++){
+      if(ops.fnArray[i]!==pdfjsLib.OPS.paintImageXObject) continue;
+      const img=await zImagen(page,ops.argsArray[i][0]);
+      if(!img||!img.data||img.width<400||img.width/img.height<6) continue;
+      const vals=zLeerTabla(img); if(vals) tablas.push(vals);
+    }
+  }
+  const enteras=tablas.filter(t=>t.every(x=>/^\d+$/.test(x))).map(t=>t.map(Number));
+  if(!enteras.length) return null;
+  let alarmas=enteras[0], cable=enteras[1]||null;
+  // si la suma del texto coincide con la segunda tabla y no con la primera, están en otro orden
+  if(cable&&alarmasTexto!=null&&sum(alarmas)!==alarmasTexto&&sum(cable)===alarmasTexto) [alarmas,cable]=[cable,alarmas];
+  return {alarmas,cable};
+}
+/*ZONAS-FIN*/
+
+/* ===================== Carga de PDFs ===================== */
+const statusEl=$('status');
+if(window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+async function procesarPDF(file){
+  const buf=await file.arrayBuffer(); const doc=await pdfjsLib.getDocument({data:buf,isOffscreenCanvasSupported:false}).promise; let txt=''; const textos=[];
+  for(let i=1;i<=doc.numPages;i++){ statusEl.textContent=`Leyendo ${file.name}: página ${i} de ${doc.numPages}…`; const p=await doc.getPage(i); const c=await p.getTextContent(); const tp=unirItems(c.items); textos.push(tp); txt+=tp+'\n'; }
+  const r=extraer(txt); r._file=file.name;
+  if(!r.mes||!r.anio){ const m=prompt(`No pude detectar el mes de "${file.name}". Ingresalo como AAAA-MM:`); if(!m||!/^\d{4}-\d{2}$/.test(m)) throw new Error('mes no indicado'); [r.anio,r.mes]=m.split('-').map(Number); }
+  const k=r.anio+'-'+String(r.mes).padStart(2,'0');
+  if(DATA[k]&&DATA[k].dotacion!=null) r.dotacion=DATA[k].dotacion;   // conserva la carga manual
+  DATA[k]=r; if(!ZONES[k]) ZONES[k]={alarmas:Array(20).fill(''),cable:Array(20).fill('')};
+  r._zonas='no encontradas';
+  try{ statusEl.textContent=`Leyendo las tablas por zona de ${file.name}…`;
+    const z=await leerZonas(doc,textos,r.aliara_alarmas);
+    if(z){ ZONES[k].alarmas=z.alarmas; if(z.cable) ZONES[k].cable=z.cable;
+      r._zonas=(r.aliara_alarmas==null?'leídas':(sum(z.alarmas)===r.aliara_alarmas?'leídas y verificadas':`leídas, pero la suma (${sum(z.alarmas)}) no coincide con el total del texto (${r.aliara_alarmas})`)); }
+  }catch(e){ r._zonas='no se pudieron leer ('+e.message+')'; }
+  return k;
+}
+async function handleFiles(files){
+  if(!window.pdfjsLib){ statusEl.textContent='No se pudo cargar el lector de PDF (revisá la conexión a internet).'; return; }
+  const done=[];
+  const errs=[];
+  for(const f of files){ try{ const k=await procesarPDF(f); done.push(`${mLabel(k)} (zonas ALIARA ${DATA[k]._zonas})`); }catch(e){ errs.push(`Error con ${f.name}: ${e.message}`); } }
+  statusEl.textContent=(done.length?'Cargados: '+done.join('; ')+'. Revisá la tabla, las zonas (solapa 3) y la situación de los pendientes (solapa 4).':'')+(errs.length?' '+errs.join(' '):'');
+  refresh();
+}
+
+/* ===================== Wiring ===================== */
+function refresh(){ derivados(); save(); renderCarga(); renderComp(); renderAliara(); renderEstado(); renderHallazgos(); }
+document.querySelectorAll('nav.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('nav.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+  document.querySelectorAll('.panel').forEach(p=>p.hidden=p.id!=='p-'+b.dataset.tab);
+  if(b.dataset.tab==='comp') renderComp(); if(b.dataset.tab==='aliara') renderAliara(); if(b.dataset.tab==='estado') renderEstado(); if(b.dataset.tab==='sug') renderHallazgos();
+});
+const drop=$('drop'), fileIn=$('file');
+drop.onclick=()=>fileIn.click(); fileIn.onchange=()=>{ handleFiles([...fileIn.files]); fileIn.value=''; };
+['dragenter','dragover'].forEach(e=>drop.addEventListener(e,ev=>{ev.preventDefault();drop.classList.add('over');}));
+['dragleave','drop'].forEach(e=>drop.addEventListener(e,ev=>{ev.preventDefault();drop.classList.remove('over');}));
+drop.addEventListener('drop',ev=>handleFiles([...ev.dataTransfer.files].filter(f=>f.type==='application/pdf'||f.name.toLowerCase().endsWith('.pdf'))));
+$('btnClear').onclick=()=>{ if(confirm('¿Quitar todos los informes, zonas, pendientes y notas?')){ DATA={}; ZONES={}; PEND=[]; NOTAS={}; refresh(); } };
+const gran=$('gran');
+gran.onchange=()=>{ $('customBox').hidden=gran.value!=='custom'; if(gran.value==='custom'){ const ks=keys(); if(ks.length){ $('aFrom').value=$('aTo').value=ks[0]; $('bFrom').value=$('bTo').value=ks[ks.length-1]; } } renderComp(); renderAliara(); renderHallazgos(); };
+['aFrom','aTo','bFrom','bTo'].forEach(i=>$(i).onchange=()=>{renderComp();renderAliara();renderHallazgos();});
+$('evoSel').onchange=()=>renderEvo(); $('zMetric').onchange=renderAliara; $('zView').onchange=renderAliara;
+[['stdSup','std_sup'],['stdAud','std_aud'],['stdHab','std_hab']].forEach(([id,k])=>$(id).onchange=()=>{ const v=+$(id).value; if(v>0){ CFG[k]=v; refresh(); } else $(id).value=CFG[k]; });
+$('stdReset').onclick=()=>{ const d=cfgDefault(); CFG.std_sup=d.std_sup; CFG.std_aud=d.std_aud; CFG.std_hab=d.std_hab; refresh(); };
+$('scoreSug').onclick=()=>{ CFG.scores={...SCORES_SUG}; refresh(); };
+$('objetivo').oninput=()=>{ OBJ=$('objetivo').value.trim(); $('objTxt').textContent=OBJ?' · '+OBJ:''; };
+$('dlTodo').onchange=()=>document.querySelectorAll('[data-sec]').forEach(c=>c.checked=$('dlTodo').checked);
+document.querySelectorAll('[data-sec]').forEach(c=>c.onchange=()=>{ const all=[...document.querySelectorAll('[data-sec]')]; $('dlTodo').checked=all.every(x=>x.checked); $('dlTodo').indeterminate=!$('dlTodo').checked&&all.some(x=>x.checked); });
+const seccionesElegidas=()=>new Set([...document.querySelectorAll('[data-sec]')].filter(c=>c.checked).map(c=>c.dataset.sec));
+window.addEventListener('beforeunload',e=>{ if(keys().length){ e.preventDefault(); e.returnValue=''; } });
+$('btnPendAdd').onclick=()=>{ PEND.push({id:'p'+Date.now(),area:'',tema:'',desde:'',est:{}}); save(); renderPend(); const ins=$('pendTable').querySelectorAll('input[data-f="tema"]'); if(ins.length) ins[ins.length-1].focus(); };
+$('btnPendCopy').onclick=()=>{ const ks=keys(); if(ks.length<2) return; const last=ks[ks.length-1]; let n=0;
+  PEND.forEach(p=>{ p.est=p.est||{}; if(p.est[last]&&p.est[last].c) return; const inf=pendInfo(p,ks[ks.length-2]); if(!inf||!inf.abierto) return;
+    p.est[last]={c:'abierto',t:p.est[inf.last].t||''}; n++; });
+  refresh(); $('pendStatus').textContent=n?`Se completaron ${n} temas como "Abierto". Revisá cuáles cambiaron.`:'No había temas abiertos para completar.'; };
+$('notas').oninput=()=>{ const k=$('notas').dataset.key; if(!k) return; const v=$('notas').value; if(v.trim()) NOTAS[k]=v; else delete NOTAS[k]; save(); };
+$('btnXlsx').onclick=()=>{ const S=seccionesElegidas(); if(!S.size){ descStatus('Elegí al menos una sección.'); return; } bajarExcel(S).catch(e=>descStatus('Error al armar el Excel: '+e.message)); };
+$('btnPdf').onclick=()=>{ const S=seccionesElegidas(); if(!S.size){ descStatus('Elegí al menos una sección.'); return; } try{ bajarPdf(S); }catch(e){ descStatus('Error al armar el PDF: '+e.message); } };
+$('btnCsv').onclick=bajarCsv;
+const themeSel=$('theme');
+function applyTheme(){ if(themeSel.value) document.documentElement.setAttribute('data-theme',themeSel.value); else document.documentElement.removeAttribute('data-theme'); renderComp(); renderAliara(); renderEstado(); }
+themeSel.onchange=applyTheme;
+
+refresh();
+</script>
+</body>
+</html>

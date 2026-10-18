@@ -107,8 +107,6 @@ table.pend select{font-size:12.5px;padding:3px 5px;width:100%;margin-bottom:3px}
 table.pend input{font-size:12.5px;padding:3px 6px;width:100%}
 table.pend td.mcol{min-width:170px}
 table.heat td{text-align:center}
-.chk{display:flex;gap:8px;align-items:baseline;padding:4px 0;font-size:14px;cursor:pointer}
-.chks{border-top:1px solid var(--grid);margin-top:6px;padding-top:6px}
 .dlgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin:10px 0}
 .dlgrid .card p{margin:4px 0 12px;font-size:13.5px;color:var(--text-2)}
 </style>
@@ -116,9 +114,8 @@ table.heat td{text-align:center}
 <body>
 <header>
   <div class="wrap" style="max-width:1148px">
-    <h1>Informes comparativos <small>Auditoría mensual<span id="objTxt"></span></small></h1>
+    <h1>Informes comparativos <small>Auditoría mensual · Barrio Privado La Herradura</small></h1>
     <div class="row">
-      <label class="f">Objetivo / barrio (opcional)<input type="text" id="objetivo" placeholder="Sale en los descargables" style="min-width:220px"></label>
       <label class="f">Tema
         <select id="theme"><option value="">Automático</option><option value="light">Claro</option><option value="dark">Oscuro</option></select>
       </label>
@@ -139,12 +136,13 @@ table.heat td{text-align:center}
   <!-- 1 CARGA -->
   <section class="panel" id="p-carga">
     <h2>Informes mensuales</h2>
-    <p class="sub">Cargá los PDF de los meses que quieras comparar. El mes y los indicadores se detectan automáticamente desde el texto del informe. Nada se guarda en el navegador: al cerrar o recargar la página se pierde lo cargado, así que bajá los informes antes de salir.</p>
+    <p class="sub">Cargá los PDF de los meses que quieras comparar. El mes y los indicadores se detectan automáticamente desde el texto del informe. Los datos de junio y julio 2026 vienen precargados como ejemplo.</p>
     <div class="drop" id="drop"><strong>Arrastrá los PDF acá</strong> o hacé clic para elegirlos<br><span class="note">Se procesan en tu navegador; no se suben a ningún servidor.</span></div>
     <input type="file" id="file" accept="application/pdf" multiple hidden>
     <div class="status" id="status"></div>
     <div class="months" id="months"></div>
     <div class="row" style="margin-top:12px">
+      <button class="btn ghost small" id="btnSample">Restaurar ejemplo Jun–Jul 2026</button>
       <button class="btn ghost small" id="btnClear">Vaciar todo</button>
     </div>
     <h3>Indicadores extraídos por mes</h3>
@@ -192,7 +190,7 @@ table.heat td{text-align:center}
   <!-- 3 ALIARA -->
   <section class="panel" id="p-aliara" hidden>
     <h2>Detección perimetral ALIARA · alarmas por zona</h2>
-    <p class="sub">En el informe estas tablas vienen como imagen, por eso se cargan a mano. El control ✓ verifica que la suma de zonas coincida con el total de alarmas del texto.</p>
+    <p class="sub">En el informe estas tablas vienen como imagen, por eso se cargan a mano (junio y julio ya están completos). El control ✓ verifica que la suma de zonas coincida con el total de alarmas del texto.</p>
     <div class="row" style="margin-bottom:10px">
       <label class="f">Métrica<select id="zMetric"><option value="alarmas">Alarmas por zona</option><option value="cable">Cable cortado por zona</option></select></label>
       <label class="f">Ver<select id="zView"><option value="abs">Cantidades</option><option value="pct">% sobre el total del período</option></select></label>
@@ -218,15 +216,14 @@ table.heat td{text-align:center}
     <h2>Tablero de estado y seguimiento</h2>
     <p class="sub">Estado que el auditor asigna a cada ítem, mes a mes (se lee automáticamente del PDF).</p>
     <h3>Índice de estado por área (0 a 100)</h3>
-    <p class="sub">Promedio de los puntajes (definidos más abajo) de los ítems de cada área, llevado a una escala de 0 a 100 (100 = todos los ítems en el mejor estado). Verde ≥ 75, amarillo 50 a 74,9, rojo &lt; 50.</p>
+    <p class="sub">Promedio de los puntajes de los ítems de cada área, llevado a una escala de 0 a 100 (100 = todos los ítems en el mejor estado). Verde ≥ 75, amarillo 50 a 74,9, rojo &lt; 50.</p>
     <div class="tablewrap" id="idxTable"></div>
     <div class="card" style="margin-top:12px"><div class="chartbox" style="height:300px"><canvas id="idxChart" aria-label="Índice de estado por área"></canvas></div></div>
-    <h3>Puntaje de cada estado</h3>
-    <p class="sub">Escala de 0 (peor) a 3 (mejor). Se pueden modificar; un estado con el casillero vacío no cuenta en el índice.</p>
-    <div class="tablewrap" id="scoreTable" style="max-width:560px"></div>
-    <div class="row" style="margin-top:8px">
-      <button class="btn ghost small" id="scoreSug">Volver a los valores originales</button>
-    </div>
+    <details style="margin-top:12px"><summary>Puntaje de cada estado (editable)</summary>
+      <p class="note" style="margin:8px 0">Escala de 0 (peor) a 3 (mejor). Dejá el casillero vacío para que ese estado no cuente en el índice.</p>
+      <div class="tablewrap" id="scoreTable" style="max-width:520px"></div>
+      <button class="btn ghost small" id="scoreReset" style="margin-top:8px">Volver a los valores originales</button>
+    </details>
     <h3>Estado de cada ítem</h3>
     <p class="sub">Se resaltan los ítems que cambiaron de estado en el rango cargado.</p>
     <div class="tablewrap" id="tabTable"></div>
@@ -261,24 +258,18 @@ table.heat td{text-align:center}
   <section class="panel" id="p-desc" hidden>
     <h2>Descargas</h2>
     <p class="sub">Los informes usan la agrupación elegida en la solapa 2 (ahora: <b id="descGran"></b>) y todos los meses cargados.</p>
-    <h3>¿Qué querés incluir?</h3>
-    <div class="card" style="max-width:640px">
-      <label class="chk"><input type="checkbox" id="dlTodo" checked> <b>Todo</b></label>
-      <div class="chks">
-        <label class="chk"><input type="checkbox" data-sec="comparativa" checked> Comparativa por período <span class="note">(indicadores principales y tabla completa)</span></label>
-        <label class="chk"><input type="checkbox" data-sec="datos" checked> Datos mensuales extraídos</label>
-        <label class="chk"><input type="checkbox" data-sec="aliara" checked> ALIARA por zona <span class="note">(estadísticos, mapa de calor y zonas recurrentes)</span></label>
-        <label class="chk"><input type="checkbox" data-sec="tablero" checked> Estado del tablero <span class="note">(índice por área e ítems)</span></label>
-        <label class="chk"><input type="checkbox" data-sec="pendientes" checked> Seguimiento de pendientes</label>
-        <label class="chk"><input type="checkbox" data-sec="hallazgos" checked> Hallazgos y notas del analista</label>
-      </div>
+    <div class="dlgrid">
+      <div class="card"><b>Excel completo</b><p>Hojas: Comparativa, Datos mensuales, ALIARA por zona, Tablero, Pendientes y Hallazgos.</p><button class="btn" id="btnXlsx">Descargar Excel</button></div>
+      <div class="card"><b>Informe en PDF</b><p>Indicadores principales, comparativa, índice del tablero, pendientes, hallazgos y notas.</p><button class="btn" id="btnPdf">Descargar PDF</button></div>
+      <div class="card"><b>Tabla comparativa en CSV</b><p>Sólo los valores por período, para usar en otra planilla.</p><button class="btn ghost" id="btnCsv">Descargar CSV</button></div>
     </div>
-    <div class="row" style="margin-top:14px">
-      <button class="btn" id="btnXlsx">Descargar Excel</button>
-      <button class="btn" id="btnPdf">Descargar PDF</button>
-      <button class="btn ghost" id="btnCsv">Tabla comparativa en CSV</button>
+    <h3>Respaldo de los datos</h3>
+    <p class="sub">Los datos se guardan en este navegador. Para pasarlos a otra computadora, o para no perderlos si se borran los datos del navegador, bajá un respaldo y después restauralo.</p>
+    <div class="row">
+      <button class="btn ghost small" id="btnBackup">Bajar respaldo (.json)</button>
+      <button class="btn ghost small" id="btnRestore">Restaurar respaldo</button>
+      <input type="file" id="fileRestore" accept="application/json,.json" hidden>
     </div>
-    <p class="note" style="margin:8px 0 0">En Excel cada sección elegida sale en su propia hoja; en el PDF, una a continuación de la otra. El CSV trae sólo los valores por período.</p>
     <div class="status" id="descStatus"></div>
   </section>
 </div>
@@ -357,18 +348,67 @@ function extraer(raw){
   return r;
 }
 
+/* ===================== Datos de ejemplo ===================== */
+const SAMPLE = {"2026-06":{"mes":6,"anio":2026,"visitas_auditoria":7,"horas_auditoria":15.87,"visitas_nocturnas":1,"dias_supervisor":15,"dias_jefe_servicio":4,"dias_reemplazo":22,"bajas":2,"altas":2,"hab_vigente":12.5,"hab_tramite":75,"hab_no_iniciado":8.3,"hab_sin_credencial":4.2,"medidas_disciplinarias":2,"km_auto":30502,"km_cuatri_420":33142,"km_cuatri_250":66541,"aliara_eventos":2492,"aliara_alarmas":375,"aliara_media_zona":18.75,"aliara_desvio_zona":38.14,"aliara_extraordinarios":289,"pedidos_informe":4,"sanciones_graves":3,"sanciones_leves":1,"faceid_errores":null,"ejercicio":"no satisfactoria","tablero":[{"item":"1.1 AUDITORÍA/ REUNIONES EFECTUADAS","estado":"Cobertura completa"},{"item":"1.2 SUPERVISIÓN","estado":"C/ observaciones"},{"item":"2.1. PERSONAL ASIGNADO AL OBJETIVO","estado":"C/ novedades"},{"item":"2.2. BAJAS Y CAUSAS","estado":"C/ novedades"},{"item":"2.3. PERSONAL NUEVO – ALTAS","estado":"C/ novedades"},{"item":"2.4. NOVEDADES CON LA DOCUMENTACIÓN","estado":"C/ novedades"},{"item":"2.5. NOVEDADES HABILITACIONES DEL PERSONAL","estado":"C/ novedades"},{"item":"2.6. CAPACITACIONES DEL PERSONAL","estado":"Sin registro"},{"item":"2.7. SANCIONES Y CAUSAS","estado":"C/ novedades"},{"item":"3.1. ARMAMENTO:","estado":"S/ modificaciones"},{"item":"3.2. COMUNICACIONES","estado":"S/ modificaciones"},{"item":"3.3. MÓVILES Y RODADOS.","estado":"C/ observaciones"},{"item":"3.4. ELEMENTOS LOGÍSTICOS","estado":"Sin registro"},{"item":"3.5 DESFIBRILADOR EXTERNO AUTOMÁTICO","estado":"Requiere Intervención"},{"item":"3.6 MATAFUEGOS","estado":"Requiere Intervención"},{"item":"4.1. PRUEBA DE PULSADORES DE PÁNICO","estado":"C/ observaciones"},{"item":"4.2. SUB-SISTEMA CCTV","estado":"C/ observaciones"},{"item":"4.3. SUB-SISTEMA DETECCIÓN PERIMETRAL","estado":"C/ observaciones - Fallas"},{"item":"4.4 SISTEMA DE CONTROL DE ACCESO- OPEN KEY","estado":"C/ observaciones - Fallas"},{"item":"4.5. BUNKER / MONITOREO","estado":"C/ observaciones"},{"item":"4.6. SUBSISTEMA POSICIONAMIENTO DINAMICO","estado":"C/ observaciones - Fallas"},{"item":"5.1 CONSIGNAS GENERALES","estado":"C/ observaciones"},{"item":"5.2 CONSIGNAS PARTICULARES","estado":"C/ novedades"},{"item":"5.3 CONOCIMIENTO POR PARTE DEL PERSONAL","estado":"Regular"},{"item":"5.4 EJERCICIOS Y RESULTADOS","estado":"No Satisfactorio"},{"item":"6.1 ESTADO DE LA GUARDIA","estado":"Regular"},{"item":"6.2. PRESENTACIÓN DEL PERSONAL","estado":"Regular"},{"item":"6.3 LIBROS DE GUARDIA","estado":"Regular"},{"item":"6.4 REUNIONES EFECTUADAS","estado":"Varias"},{"item":"6.5 ACTAS DE INCLUMPLIMIENTO PRESTADORA","estado":"C/ novedades"},{"item":"7.1 PERIMETRO DEL PREDIO","estado":"Requiere Intervención"},{"item":"7.2 REDUCTORES DE VELOCIDAD","estado":"Requiere Intervención"},{"item":"8. NECESIDADES Y SUGERENCIAS GENERALES","estado":"C/ novedades"}]},"2026-07":{"mes":7,"anio":2026,"visitas_auditoria":7,"horas_auditoria":16.52,"visitas_nocturnas":1,"dias_supervisor":14,"dias_jefe_servicio":0,"dias_reemplazo":23,"bajas":3,"altas":3,"hab_vigente":12.5,"hab_tramite":75,"hab_no_iniciado":12.5,"hab_sin_credencial":0,"medidas_disciplinarias":0,"km_auto":35992,"km_cuatri_420":35631,"km_cuatri_250":66910,"aliara_eventos":6104,"aliara_alarmas":762,"aliara_media_zona":38.1,"aliara_desvio_zona":40.96,"aliara_extraordinarios":704,"pedidos_informe":4,"sanciones_graves":3,"sanciones_leves":3,"faceid_errores":3,"ejercicio":"no satisfactoria","tablero":[{"item":"1.1 AUDITORÍA/ REUNIONES EFECTUADAS","estado":"Cobertura completa"},{"item":"1.2 SUPERVISIÓN","estado":"C/ observaciones"},{"item":"2.1. PERSONAL ASIGNADO AL OBJETIVO","estado":"C/ novedades"},{"item":"2.2. BAJAS Y CAUSAS","estado":"C/ novedades"},{"item":"2.3. PERSONAL NUEVO – ALTAS","estado":"C/ novedades"},{"item":"2.4. NOVEDADES CON LA DOCUMENTACIÓN","estado":"C/ novedades"},{"item":"2.5. NOVEDADES HABILITACIONES DEL PERSONAL","estado":"C/ novedades"},{"item":"2.6. CAPACITACIONES DEL PERSONAL","estado":"Sin registro"},{"item":"2.7. SANCIONES Y CAUSAS","estado":"Incompatibilidad"},{"item":"3.1. ARMAMENTO:","estado":"S/ modificaciones"},{"item":"3.2. COMUNICACIONES","estado":"S/ modificaciones"},{"item":"3.3. MÓVILES Y RODADOS.","estado":"C/ observaciones"},{"item":"3.4. ELEMENTOS LOGÍSTICOS","estado":"Sin registro"},{"item":"3.5 DESFIBRILADOR EXTERNO AUTOMÁTICO","estado":"Requiere Intervención"},{"item":"3.6 MATAFUEGOS","estado":"Requiere Intervención"},{"item":"4.1. PRUEBA DE PULSADORES DE PÁNICO","estado":"C/ observaciones"},{"item":"4.2. SUB-SISTEMA CCTV","estado":"C/ observaciones"},{"item":"4.3. SUB-SISTEMA DETECCIÓN PERIMETRAL","estado":"C/ observaciones - Fallas"},{"item":"4.4 SISTEMA DE CONTROL DE ACCESO- OPEN KEY","estado":"C/ observaciones - Fallas"},{"item":"4.5. BUNKER / MONITOREO","estado":"C/ observaciones"},{"item":"4.6. SUBSISTEMA POSICIONAMIENTO DINAMICO","estado":"C/ observaciones - Fallas"},{"item":"5.1 CONSIGNAS GENERALES","estado":"C/ observaciones"},{"item":"5.2 CONSIGNAS PARTICULARES","estado":"C/ novedades"},{"item":"5.3 CONOCIMIENTO POR PARTE DEL PERSONAL","estado":"Regular"},{"item":"5.4 EJERCICIOS Y RESULTADOS","estado":"No Satisfactorio"},{"item":"6.1 ESTADO DE LA GUARDIA","estado":"Regular"},{"item":"6.2. PRESENTACIÓN DEL PERSONAL","estado":"Regular"},{"item":"6.3 LIBROS DE GUARDIA","estado":"Regular"},{"item":"6.4 REUNIONES EFECTUADAS","estado":"Varias"},{"item":"6.5 ACTAS DE INCLUMPLIMIENTO PRESTADORA","estado":"C/ novedades"},{"item":"7.1 PERIMETRO DEL PREDIO","estado":"Requiere Intervención"},{"item":"7.2 REDUCTORES DE VELOCIDAD","estado":"Requiere Intervención"},{"item":"8. NECESIDADES Y SUGERENCIAS GENERALES","estado":"C/ novedades"}]}};
+const SAMPLE_ZONES = {
+  "2026-06":{alarmas:[6,15,2,4,2,2,170,2,0,2,15,10,52,30,22,1,3,0,5,32], cable:[0,0,0,0,0,0,7,1,33,5,31,30,0,0,0,0,0,0,0,0]},
+  "2026-07":{alarmas:[28,42,13,26,15,15,98,8,165,51,88,84,8,10,28,32,18,6,7,20], cable:[2,1,0,1,1,2,8,3,12,8,6,4,0,1,8,4,2,0,1,0]}
+};
+// [área, tema, detalle junio, detalle julio, evolución en julio, abierto desde]
+const PEND_SEED=[
+ ['Material','Batería del DEA con vida útil agotada','Pendiente','Pendiente','sin','2025-11'],
+ ['Material','Recarga del extintor del Puesto 1 (usado el 8-may)','Pendiente','Pendiente (comunicado a Gerencia e Intendencia)','sin','2026-05'],
+ ['Material','Fijación de la caja fuerte del arma letal (Puesto 1)','Pendiente','Pendiente','sin',''],
+ ['Material','Equipo HT del Puesto 1 en reparación','Sin reintegrar','Sin reintegrar, sin novedades','sin','2026-02'],
+ ['Material','CLU y portaciones del personal','Sin avances','Sin avances','sin',''],
+ ['Material','Inventario logístico mensual con prueba funcional','Sin registro','Sin registro','sin',''],
+ ['Material','Limpieza de armas de baja letalidad','Instructor cuasi mensual','Sin instructor desde mayo; limpia el Supervisor','peor','2026-05'],
+ ['Móviles','Acceso al DVR del automóvil','Sin acceso (credenciales perdidas)','Resuelto el 30-jul · resguardo ≈ 20 días','resuelto',''],
+ ['Móviles','Luces reglamentarias delanteras del automóvil','No funcionan','Reparadas + service (6-jul)','resuelto',''],
+ ['Móviles','Luz delantera derecha cuatriciclo 420','Quemada','Reparada el 31-jul','resuelto','2026-05'],
+ ['Móviles','Cobertores de lentes de cámaras del móvil','Sucios','Limpios','resuelto',''],
+ ['Tecnología','GPS de cuatriciclos','Interrupciones de registro','Recambio de equipos sin mejora; reclamo formal 18-jul','sin',''],
+ ['Tecnología','Trazas GPS del automóvil (ITURAN)','Inconsistentes','Inconsistentes','sin',''],
+ ['Tecnología','Falsos positivos FaceId','Múltiples (informe específico)','3 casos registrados','sin',''],
+ ['Tecnología','Telarañas en cámaras CCTV','En aumento','En disminución (más presencia de HP)','mejora',''],
+ ['Tecnología','Pulsador View del búnker sin señal','Persiste','Persiste','sin',''],
+ ['Tecnología','Sistema hombre vivo/muerto','Pendiente','Pendiente','sin',''],
+ ['Supervisión','Jefe de Servicio de licencia','Licencia desde 5-jun','Licencia prorrogada (hasta 15-ago)','sin','2026-06'],
+ ['Supervisión','Cobertura de supervisión nocturna','Ausente','Ausente','sin',''],
+ ['Servicio','Refuerzo POLAD nocturno (2 efectivos)','Sostenido','No sostenido (1 efectivo)','peor',''],
+ ['Formal','Firmas de toma/entrega de guardia en libros','Ausentes','Ausentes','sin',''],
+ ['Formal','Presentación (corte de cabello, afeitado, maquillaje)','Incumplimientos','Mejora significativa; uniformes nuevos','mejora',''],
+ ['Formal','Uso de aros y piercings','Persiste','Persiste','sin',''],
+ ['Documentación','Entrega de documentación de la prestadora','Dilatoria (Pedido 24/26)','Más proactiva; F931 y recibos al día (junio)','mejora',''],
+ ['Perímetro','Reparaciones del alambrado perimetral','Ralentizadas','Marcada desaceleración','peor',''],
+ ['Perímetro','Recomendaciones de la sección 8 (18 ítems)','18 abiertas','18 abiertas, sin cierres','sin',''],
+];
+const NOTAS_SEED={'Jun 2026 → Jul 2026':
+`ALIARA: los eventos pasaron de 2.492 a 6.104 y las alarmas de 375 a 762, pero las alarmas residuales (sin causa identificada) bajaron de 86 a 58 (−32,6 %).
+Dispersión entre zonas: el CV cae de 203 % a 108 % y la mediana pasa de 4,5 a 23. El foco se desplazó de la Z7 (45,3 % del total en junio) a las zonas 9 a 12 (50,9 % en julio) por el corrimiento del perímetro.
+Cable cortado: bajó de 107 a 64 eventos y quedó menos concentrado (zonas 9 a 12: 92,5 % → 46,9 %).
+Supervisión: el cumplimiento del estándar cayó de 79 % a 58 % por la licencia del Jefe de Servicio; el turno nocturno sigue sin cobertura.
+Personal: dos de las tres altas de julio se dieron de baja a los 1-2 días; la credencial vigente sigue en 12,5 %.
+Incumplimientos: 4 pedidos de informe por mes; las sanciones leves suben de 1 a 3. El cambio de 2.7 a "Incompatibilidad" se debe a que la VG a cargo no tiene potestad disciplinaria.
+Móviles: en julio el cuatriciclo 250 recorrió sólo el 15 % de lo que recorrió el 420.
+Tablero: 32 de 33 ítems sin cambios; las 18 recomendaciones de la sección 8 siguen abiertas.`};
 const MESES_C=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 const AREAS={'1':'Auditoría y supervisión','2':'Personal','3':'Material y logística','4':'Sistemas tecnológicos','5':'Consignas y ejercicios','6':'Guardia y formalidades','7':'Seguridad del predio','8':'Necesidades y sugerencias'};
-// Puntajes por defecto de cada estado (editables en la solapa 4)
-const SCORES_SUG={'Cobertura completa':3,'Muy Bueno':3,'Satisfactorio':3,'Sin novedades':3,'S/ modificaciones':3,'Bueno':2,'C/ novedades':2,'C/ observaciones':2,'Regular':1,'C/ observaciones - Fallas':1,'Sin registro':1,'Incompatibilidad':1,'Requiere Intervención':0,'No Satisfactorio':0,'Varias':null};
+const SCORES_DEF={'Cobertura completa':3,'Muy Bueno':3,'Satisfactorio':3,'Sin novedades':3,'S/ modificaciones':3,'Bueno':2,'C/ novedades':2,'C/ observaciones':2,'Regular':1,'C/ observaciones - Fallas':1,'Sin registro':1,'Incompatibilidad':1,'Requiere Intervención':0,'No Satisfactorio':0,'Varias':null};
 const CATS={abierto:['Abierto','d-neu'],mejora:['Mejora','d-good'],empeora:['Empeora','d-bad'],resuelto:['Resuelto','d-good']};
 
 /* ===================== Estado ===================== */
-// Todo vive sólo en memoria mientras la página está abierta: no se guarda nada en el navegador.
-let DATA={}, ZONES={}, PEND=[], NOTAS={}, CFG=cfgDefault(), OBJ='';
-function cfgDefault(){ return {std_sup:24, std_aud:4, std_hab:100, scores:{...SCORES_SUG}}; }
-function save(){}
-try{ localStorage.removeItem('ic_data'); localStorage.removeItem('ic_theme'); }catch(e){}   // borra lo que hayan guardado versiones anteriores
+let DATA={}, ZONES={}, PEND=[], NOTAS={}, CFG=cfgDefault();
+function cfgDefault(){ return {std_sup:24, std_aud:4, std_hab:100, scores:{...SCORES_DEF}}; }
+function samplePend(){ const map={sin:'abierto',peor:'empeora',mejora:'mejora',resuelto:'resuelto'};
+  return PEND_SEED.map((r,i)=>({id:'p'+(i+1),area:r[0],tema:r[1],desde:r[5]||'',est:{'2026-06':{c:'abierto',t:r[2]},'2026-07':{c:map[r[4]],t:r[3]}}})); }
+function save(){ try{ localStorage.setItem('ic_data',JSON.stringify({v:2,DATA,ZONES,PEND,NOTAS,CFG})); }catch(e){} }
+function aplicarEstado(s){
+  DATA=s.DATA||{}; ZONES=s.ZONES||{}; PEND=Array.isArray(s.PEND)?s.PEND:samplePend(); NOTAS=s.NOTAS||{};
+  CFG=Object.assign(cfgDefault(),s.CFG||{}); CFG.scores=Object.assign({...SCORES_DEF},(s.CFG&&s.CFG.scores)||{});
+}
+function load(){ try{ const s=JSON.parse(localStorage.getItem('ic_data')||'null'); if(s&&s.DATA&&Object.keys(s.DATA).length){ aplicarEstado(s); return true; } }catch(e){} return false; }
+function loadSample(){ DATA=JSON.parse(JSON.stringify(SAMPLE)); ZONES=JSON.parse(JSON.stringify(SAMPLE_ZONES)); PEND=samplePend(); NOTAS={...NOTAS_SEED}; }
 const keys=()=>Object.keys(DATA).sort();
 const mLabel=k=>{const [y,m]=k.split('-');return MESES_C[+m-1]+' '+y;};
 
@@ -409,7 +449,7 @@ const IND = [
  {g:'Detección perimetral (ALIARA)', k:'aliara_alarmas', n:'Disparos de alarma', agg:'sum', dir:'down', fmt:'int'},
  {g:'Detección perimetral (ALIARA)', k:'al_dia', n:'Disparos de alarma por día', agg:'ratio', num:'aliara_alarmas', den:'_dias', dir:'down', fmt:'dec'},
  {g:'Detección perimetral (ALIARA)', k:'pct_alarma', n:'% de eventos que son alarma', agg:'ratio', num:'aliara_alarmas', den:'aliara_eventos', dir:'none', fmt:'pct'},
- {g:'Detección perimetral (ALIARA)', k:'aliara_extraordinarios', n:'Alarmas con causa identificada', agg:'sum', dir:'none', fmt:'int'},
+ {g:'Detección perimetral (ALIARA)', k:'aliara_extraordinarios', n:'Alarmas con causa identificada (Z7, pruebas, clima)', agg:'sum', dir:'none', fmt:'int'},
  {g:'Detección perimetral (ALIARA)', k:'pct_extra', n:'% de alarmas con causa identificada', agg:'ratio', num:'aliara_extraordinarios', den:'aliara_alarmas', dir:'none', fmt:'pct'},
  {g:'Detección perimetral (ALIARA)', k:'residual', n:'Alarmas residuales (sin causa identificada)', agg:'sum', dir:'down', fmt:'int'},
  {g:'Detección perimetral (ALIARA)', k:'res_dia', n:'Alarmas residuales por día', agg:'ratio', num:'residual', den:'_dias', dir:'down', fmt:'dec'},
@@ -417,6 +457,7 @@ const IND = [
  {g:'Detección perimetral (ALIARA)', k:'z_mediana', n:'Mediana de alarmas por zona', agg:'zone', zf:'median', dir:'down', fmt:'dec'},
  {g:'Detección perimetral (ALIARA)', k:'z_sd', n:'Desvío estándar entre zonas', agg:'zone', zf:'sd', dir:'none', fmt:'dec'},
  {g:'Detección perimetral (ALIARA)', k:'z_cv', n:'Coeficiente de variación entre zonas', agg:'zone', zf:'cv', dir:'down', fmt:'pct'},
+ {g:'Detección perimetral (ALIARA)', k:'z7', n:'Alarmas en Zona 7', agg:'zone', zf:'z7', dir:'down', fmt:'int'},
  {g:'Detección perimetral (ALIARA)', k:'cable', n:'Eventos de cable cortado', agg:'zone', zf:'cable', dir:'down', fmt:'int'},
  {g:'Estado del tablero', k:'idx_tablero', n:'Índice de estado del tablero (0 a 100)', agg:'avg', dir:'up', fmt:'idx'},
  {g:'Pendientes', k:'pend_abiertos', n:'Temas pendientes abiertos (al cierre)', agg:'last', dir:'down', fmt:'int'},
@@ -485,6 +526,7 @@ function aggregate(ind, months){
     case 'zone': {
       if(ind.zf==='cable'){ const v=zoneVec(months,'cable'); return v?sum(v):null; }
       const v=zoneVec(months,'alarmas'); if(!v) return null;
+      if(ind.zf==='z7') return v[6];
       return zoneStat(v,ind.zf);
     }
   }
@@ -625,10 +667,10 @@ function renderAliara(){
       zDelta=new Chart($('zDelta'),{type:'bar',data:{labels,datasets:[{label:`${P[ok[ok.length-1]].label} − ${P[ok[ok.length-2]].label}`,data:d,backgroundColor:d.map(x=>x>0?cssv('--bad'):cssv('--good')),borderRadius:3,borderSkipped:false,maxBarThickness:22}]},options:chartOpts('',true)});
     }
   }
-  let h='<table><thead><tr><th>Período</th><th>Total</th><th>Media</th><th>Mediana</th><th>Desvío (n−1)</th><th>CV</th><th>Zona con más</th></tr></thead><tbody>';
-  P.forEach((p,j)=>{ const v=vecs[j]; if(!v){h+=`<tr><td>${p.label}</td><td colspan="6" class="note" style="text-align:left">sin datos por zona</td></tr>`;return;}
-    const t=sum(v), mx=v.indexOf(Math.max(...v));
-    h+=`<tr><td>${p.label}</td><td class="num">${fmt(t,'int')}</td><td class="num">${fmt(zoneStat(v,'mean'),'dec')}</td><td class="num">${fmt(zoneStat(v,'median'),'dec')}</td><td class="num">${fmt(zoneStat(v,'sd'),'dec')}</td><td class="num">${fmt(zoneStat(v,'cv'),'pct')}</td><td class="num">Z${mx+1} · ${t?fmt(v[mx]/t,'pct'):'—'}</td></tr>`; });
+  let h='<table><thead><tr><th>Período</th><th>Total</th><th>Media</th><th>Mediana</th><th>Desvío (n−1)</th><th>CV</th><th>Zona con más</th><th>Zonas 9–12</th></tr></thead><tbody>';
+  P.forEach((p,j)=>{ const v=vecs[j]; if(!v){h+=`<tr><td>${p.label}</td><td colspan="7" class="note" style="text-align:left">sin datos por zona</td></tr>`;return;}
+    const t=sum(v), mx=v.indexOf(Math.max(...v)), z912=v[8]+v[9]+v[10]+v[11];
+    h+=`<tr><td>${p.label}</td><td class="num">${fmt(t,'int')}</td><td class="num">${fmt(zoneStat(v,'mean'),'dec')}</td><td class="num">${fmt(zoneStat(v,'median'),'dec')}</td><td class="num">${fmt(zoneStat(v,'sd'),'dec')}</td><td class="num">${fmt(zoneStat(v,'cv'),'pct')}</td><td class="num">Z${mx+1} · ${t?fmt(v[mx]/t,'pct'):'—'}</td><td class="num">${fmt(z912,'int')} · ${t?fmt(z912/t,'pct'):'—'}</td></tr>`; });
   $('zStats').innerHTML=h+'</tbody></table>';
   // Mapa de calor
   const {ks:hk,per}=heatData(metric);
@@ -668,9 +710,7 @@ function renderEstado(){
   // Índice
   const areas=areasCargadas();
   const cell=v=>v==null?'<td class="num">—</td>':`<td class="num" style="background:var(${v>=75?'--good-bg':v>=50?'--warn-bg':'--bad-bg'})">${fmt(v,'idx')}</td>`;
-  const sinPuntajes=!Object.values(CFG.scores).some(v=>v!=null&&v!=='');
-  if(!ks.length||!tableroItems().length) $('idxTable').innerHTML='<p class="note" style="padding:12px">Sin datos de tablero.</p>';
-  else if(sinPuntajes||!areas.length) $('idxTable').innerHTML='<p class="note" style="padding:12px">Definí el puntaje de cada estado (más abajo) para calcular el índice.</p>';
+  if(!ks.length||!areas.length) $('idxTable').innerHTML='<p class="note" style="padding:12px">Sin datos de tablero.</p>';
   else $('idxTable').innerHTML='<table><thead><tr><th>Área</th>'+ks.map(k=>`<th>${mLabel(k)}</th>`).join('')+'</tr></thead><tbody>'+
     areas.map(a=>`<tr><td>${areaNom(a)}</td>`+ks.map(k=>cell(DATA[k]._idx_areas?.[a])).join('')+'</tr>').join('')+
     '<tr class="tot"><td>Índice general</td>'+ks.map(k=>cell(DATA[k].idx_tablero)).join('')+'</tr></tbody></table>';
@@ -680,8 +720,7 @@ function renderEstado(){
     idxChart=new Chart($('idxChart'),{type:'line',data:{labels:ks.map(mLabel),datasets:ds},options:chartOpts('',true,100)}); }
   // Puntajes
   const est=new Set(Object.keys(CFG.scores)); ks.forEach(k=>(DATA[k].tablero||[]).forEach(t=>est.add(t.estado)));
-  if(!est.size){ $('scoreTable').innerHTML='<p class="note" style="padding:12px">Los estados aparecen cuando cargás un informe.</p>'; }
-  else $('scoreTable').innerHTML='<table><thead><tr><th>Estado</th><th>Puntaje (0 a 3)</th></tr></thead><tbody>'+
+  $('scoreTable').innerHTML='<table><thead><tr><th>Estado</th><th>Puntaje (0 a 3)</th></tr></thead><tbody>'+
     [...est].map(e=>`<tr><td>${esc(e)}</td><td><input class="zin" type="number" min="0" max="3" step="0.5" data-sc="${esc(e)}" value="${CFG.scores[e]??''}"></td></tr>`).join('')+'</tbody></table>';
   $('scoreTable').querySelectorAll('[data-sc]').forEach(inp=>inp.onchange=()=>{ const v=inp.value===''?null:Math.max(0,Math.min(3,+inp.value)); CFG.scores[inp.dataset.sc]=v; refresh(); });
   // Ítems
@@ -742,7 +781,7 @@ function generarHallazgos(){
   // Tablero
   const mA=A.months.filter(k=>DATA[k]).pop(), mB=B.months.filter(k=>DATA[k]).pop();
   if(mA&&mB){ const its=tableroItems(); const ch=its.filter(r=>r.e[mA]&&r.e[mB]&&r.e[mA]!==r.e[mB]);
-    const l=(DATA[mA].idx_tablero!=null&&DATA[mB].idx_tablero!=null)?[`Índice general: ${fmt(DATA[mA].idx_tablero,'idx')} (${mLabel(mA)}) → ${fmt(DATA[mB].idx_tablero,'idx')} (${mLabel(mB)}).`]:[];
+    const l=[`Índice general: ${fmt(DATA[mA].idx_tablero,'idx')} (${mLabel(mA)}) → ${fmt(DATA[mB].idx_tablero,'idx')} (${mLabel(mB)}).`];
     l.push(ch.length?`${ch.length} de ${its.length} ítems cambiaron de estado:`:`Ninguno de los ${its.length} ítems cambió de estado entre ${mLabel(mA)} y ${mLabel(mB)}.`);
     ch.forEach(r=>l.push(`${r.item}: ${r.e[mA]} → ${r.e[mB]}`));
     const ar=areasCargadas().map(a=>({a,x:DATA[mA]._idx_areas?.[a],y:DATA[mB]._idx_areas?.[a]})).filter(o=>o.x!=null&&o.y!=null&&o.x!==o.y);
@@ -799,8 +838,7 @@ function xlVal(ind,v){ if(v==null||Number.isNaN(v)) return {v:null};
 function xlDelta(ind,d){ if(d==null) return {v:null}; const pp='+0.0" p.p.";-0.0" p.p.";0.0" p.p."';
   if(ind.fmt==='pct') return {v:d*100,f:pp}; if(ind.fmt==='pct1') return {v:d,f:pp};
   const x=xlVal(ind,d); if(ind.fmt==='pct1') return x; const f=x.f||'0.00'; return {v:x.v,f:'+'+f+';-'+f+';'+f}; }
-async function bajarExcel(S){
-  S=S||new Set(['comparativa','datos','aliara','tablero','pendientes','hallazgos']);
+async function bajarExcel(){
   if(!window.ExcelJS){ descStatus('No se pudo cargar ExcelJS (revisá la conexión a internet).'); return; }
   const ks=keys(); if(!ks.length){ descStatus('No hay informes cargados.'); return; }
   descStatus('Armando el Excel…');
@@ -809,12 +847,10 @@ async function bajarExcel(S){
   const fill=c=>({type:'pattern',pattern:'solid',fgColor:{argb:c}});
   const head=row=>{ row.eachCell(c=>{ c.font={bold:true,color:{argb:'FFFFFFFF'}}; c.fill=fill(AZ); c.alignment={vertical:'middle',wrapText:true}; }); row.height=32; };
   const titulo=(ws,t,sub)=>{ ws.addRow([t]).font={bold:true,size:13}; ws.addRow([sub]).font={color:{argb:'FF52514E'}}; ws.addRow([]); };
-  const sub=`${OBJ?OBJ+' · ':''}Agrupación: ${granLabel()} · Meses cargados: ${mLabel(ks[0])} a ${mLabel(ks[ks.length-1])} · Generado el ${hoyTxt()}`;
+  const sub=`Barrio Privado La Herradura · Agrupación: ${granLabel()} · Meses cargados: ${mLabel(ks[0])} a ${mLabel(ks[ks.length-1])} · Generado el ${hoyTxt()}`;
 
-  let ws;
   // 1 Comparativa
-  if(S.has('comparativa')){
-  ws=wb.addWorksheet('Comparativa',{views:[{state:'frozen',xSplit:2,ySplit:4}]});
+  let ws=wb.addWorksheet('Comparativa',{views:[{state:'frozen',xSplit:2,ySplit:4}]});
   titulo(ws,'Informes comparativos · Auditoría mensual',sub);
   const hdr=['Grupo','Indicador',...P.map(p=>p.label+(incompleto(p)?` (${p.loaded.length}/${p.months.length} meses)`:''))];
   for(let j=1;j<P.length;j++) hdr.push(`Δ ${P[j].label} vs ${P[j-1].label}`,'Δ %');
@@ -827,19 +863,15 @@ async function bajarExcel(S){
   });
   ws.getColumn(1).width=26; ws.getColumn(2).width=52; for(let c=3;c<=hdr.length;c++) ws.getColumn(c).width=16;
   ws.addRow([]); ws.addRow(['Δ % en verde: mejora según el sentido deseable del indicador; en rojo: empeora; en gris: sin juicio de valor.']).font={italic:true,color:{argb:'FF7C7A74'}};
-  }
 
   // 2 Datos mensuales
-  if(S.has('datos')){
   ws=wb.addWorksheet('Datos mensuales',{views:[{state:'frozen',xSplit:1,ySplit:4}]});
   titulo(ws,'Indicadores extraídos por mes',sub);
   head(ws.addRow(['Indicador',...ks.map(mLabel)]));
   [['dotacion','Dotación asignada (carga manual)'],...RAW_ROWS].forEach(([k,n])=>{ const r=ws.addRow([n,...ks.map(m=>DATA[m][k]??null)]); r.eachCell((c,i)=>{ if(i>1&&typeof c.value==='number') c.numFmt=Number.isInteger(c.value)?'#,##0':'#,##0.00'; }); });
   ws.getColumn(1).width=34; ks.forEach((_,i)=>ws.getColumn(i+2).width=14);
-  }
 
   // 3 ALIARA
-  if(S.has('aliara')){
   ws=wb.addWorksheet('ALIARA por zona',{views:[{state:'frozen',xSplit:1,ySplit:4}]});
   titulo(ws,'Detección perimetral ALIARA por zona',sub);
   ['alarmas','cable'].forEach(mt=>{
@@ -847,17 +879,15 @@ async function bajarExcel(S){
     if(!zk.length){ ws.addRow([`${nom}: sin datos por zona`]); ws.addRow([]); return; }
     head(ws.addRow([nom,...zk.map(mLabel),...zk.map(k=>'% '+mLabel(k))]));
     for(let z=0;z<20;z++){ const r=ws.addRow(['Z'+(z+1),...per.map(p=>p.v[z]),...per.map(p=>p.sh[z])]);
-      per.forEach((p,i)=>{ const c=r.getCell(2+per.length+i); c.numFmt='0.0%'; if(p.sh[z]>0.05) c.fill=fill(p.sh[z]>=0.2?'FFF4B4B4':p.sh[z]>=0.1?'FFF8D2D2':'FFFCE9E9'); }); }
+      per.forEach((p,i)=>{ const c=r.getCell(2+per.length+i); c.numFmt='0.0%'; const a=Math.round(p.sh[z]*255*1.6); if(p.sh[z]>0.05) c.fill=fill(p.sh[z]>=0.2?'FFF4B4B4':p.sh[z]>=0.1?'FFF8D2D2':'FFFCE9E9'); }); }
     const t=ws.addRow(['Total',...per.map(p=>p.t)]); t.font={bold:true}; ws.addRow([]);
     const rk=rankingZonas(mt);
     if(rk.length){ head(ws.addRow([`${nom}: zonas en el top 3`,'Meses en el top 3','Meses cargados','Racha actual (meses)','Participación promedio']));
       rk.forEach(r=>{ const x=ws.addRow(['Z'+(r.z+1),r.n,r.m,r.racha,r.sh]); x.getCell(5).numFmt='0.0%'; }); ws.addRow([]); }
   });
   ws.getColumn(1).width=24; for(let c=2;c<=30;c++) ws.getColumn(c).width=12;
-  }
 
   // 4 Tablero
-  if(S.has('tablero')){
   ws=wb.addWorksheet('Tablero',{views:[{state:'frozen',xSplit:1,ySplit:4}]});
   titulo(ws,'Estado del tablero',sub);
   head(ws.addRow(['Área',...ks.map(mLabel)]));
@@ -868,13 +898,10 @@ async function bajarExcel(S){
   head(ws.addRow(['Ítem',...ks.map(mLabel),'¿Cambió?']));
   tableroItems().forEach(it=>{ const es=ks.map(k=>it.e[k]||''); const ch=new Set(es.filter(Boolean)).size>1; const r=ws.addRow([it.item,...es,ch?'Sí':'']); if(ch) r.eachCell(c=>c.fill=fill(FILL.warn)); });
   ws.addRow([]); head(ws.addRow(['Estado','Puntaje (0 a 3)']));
-  const scs=Object.entries(CFG.scores).filter(([e,v])=>v!=null);
-  if(scs.length) scs.forEach(([e,v])=>ws.addRow([e,v])); else ws.addRow(['Sin puntajes definidos: el índice no se calcula.']);
+  Object.entries(CFG.scores).forEach(([e,v])=>ws.addRow([e,v==null?'no cuenta':v]));
   ws.getColumn(1).width=48; ks.forEach((_,i)=>ws.getColumn(i+2).width=24);
-  }
 
   // 5 Pendientes
-  if(S.has('pendientes')){
   ws=wb.addWorksheet('Pendientes',{views:[{state:'frozen',xSplit:2,ySplit:4}]});
   const last=ks[ks.length-1];
   titulo(ws,'Seguimiento de pendientes',sub);
@@ -885,10 +912,8 @@ async function bajarExcel(S){
     r.alignment={vertical:'top',wrapText:true}; });
   ws.getColumn(1).width=16; ws.getColumn(2).width=44; ws.getColumn(3).width=14; for(let c=4;c<4+ks.length*2;c++) ws.getColumn(c).width=(c-4)%2?36:14;
   ws.getColumn(4+ks.length*2).width=14; ws.getColumn(5+ks.length*2).width=16; ws.getColumn(6+ks.length*2).width=14;
-  }
 
   // 6 Hallazgos
-  if(S.has('hallazgos')){
   ws=wb.addWorksheet('Hallazgos'); ws.getColumn(1).width=140;
   titulo(ws,'Hallazgos',sub);
   const H=generarHallazgos();
@@ -897,17 +922,15 @@ async function bajarExcel(S){
     if(H.aviso) ws.addRow([H.aviso]).font={color:{argb:'FFC62828'}};
     H.secs.forEach(s=>{ ws.addRow([]); ws.addRow([s.t]).font={bold:true,color:{argb:AZ}}; s.l.forEach(x=>ws.addRow(['• '+x]).alignment={wrapText:true}); });
     const nt=NOTAS[H.key]; if(nt&&nt.trim()){ ws.addRow([]); ws.addRow(['Notas del analista']).font={bold:true,color:{argb:AZ}}; nt.split('\n').filter(x=>x.trim()).forEach(x=>ws.addRow([x]).alignment={wrapText:true}); } }
-  }
 
   const buf=await wb.xlsx.writeBuffer();
-  descargar(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),nombreBase()+(S.size<6?'_seleccion':'')+'.xlsx');
+  descargar(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),nombreBase()+'.xlsx');
   descStatus('Excel descargado.');
 }
 
 const pdfT=s=>String(s??'').replace(/Δ/g,'Var.').replace(/▲/g,'+').replace(/▼/g,'-').replace(/●/g,'=').replace(/→/g,'->').replace(/[−–—]/g,'-')
   .replace(/≈/g,'aprox.').replace(/≠/g,'distinto de').replace(/✓/g,'OK').replace(/…/g,'...').replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/\u00a0|\u202f/g,' ').replace(/[^\x00-\xFF]/g,'');
-function bajarPdf(S){
-  S=S||new Set(['comparativa','datos','aliara','tablero','pendientes','hallazgos']);
+function bajarPdf(){
   if(!window.jspdf){ descStatus('No se pudo cargar jsPDF (revisá la conexión a internet).'); return; }
   const ks=keys(); if(!ks.length){ descStatus('No hay informes cargados.'); return; }
   const {jsPDF}=window.jspdf; const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
@@ -924,10 +947,9 @@ function bajarPdf(S){
 
   doc.setFont('helvetica','bold'); doc.setFontSize(15); doc.text(T('Informes comparativos · Auditoría mensual'),12,y); y+=6;
   doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(82,81,78);
-  doc.text(T(`${OBJ?OBJ+' · ':''}Agrupación: ${granLabel()} · Meses cargados: ${mLabel(ks[0])} a ${mLabel(ks[ks.length-1])} · Generado el ${hoyTxt()}`),12,y); doc.setTextColor(0); y+=9;
+  doc.text(T(`Barrio Privado La Herradura · Agrupación: ${granLabel()} · Meses cargados: ${mLabel(ks[0])} a ${mLabel(ks[ks.length-1])} · Generado el ${hoyTxt()}`),12,y); doc.setTextColor(0); y+=9;
 
   const {P,vals}=calcComp(); const L=P.length-1;
-  if(S.has('comparativa')){
   // KPIs
   tit(`Indicadores principales · ${P[L].label}${L>0?' frente a '+P[L-1].label:''}`);
   const kb=[], km=[];
@@ -953,43 +975,10 @@ function bajarPdf(S){
     didParseCell:dt=>{ if(conD&&dt.section==='body'&&dt.column.index===hd.length-1&&meta[dt.row.index]){ const c=COL[meta[dt.row.index]]; dt.cell.styles.fillColor=c[0]; dt.cell.styles.textColor=c[1]; dt.cell.styles.fontStyle='bold'; } } });
   after();
   if(P.some(incompleto)){ parr('Hay períodos incompletos (entre paréntesis, meses cargados sobre meses del período): las sumas sólo incluyen los meses cargados.'); y+=4; }
-  }
-  const kv=ks.length>10?ks.slice(-10):ks;
-
-  // Datos mensuales
-  if(S.has('datos')){
-    tit('Datos mensuales extraídos'+(ks.length>10?' · últimos 10 meses':''));
-    const db=[['dotacion','Dotación asignada (carga manual)'],...RAW_ROWS].map(([k,n])=>[T(n),...kv.map(m=>{ const v=DATA[m][k]; return v==null?'':T(typeof v==='number'?v.toLocaleString('es-AR'):v); })]);
-    const cs2={0:{cellWidth:70}}; kv.forEach((_,i)=>cs2[i+1]={halign:'right'});
-    doc.autoTable({...base,startY:y,head:[['Indicador',...kv.map(mLabel)]],body:db,columnStyles:cs2}); after();
-  }
-
-  // ALIARA
-  if(S.has('aliara')){
-    const vecs=P.map(p=>zoneVec(p.months,'alarmas'));
-    tit('ALIARA · alarmas por zona');
-    if(!vecs.some(Boolean)){ y+=3; parr('Sin datos por zona cargados.'); y+=4; }
-    else{
-      const zb=P.map((p,j)=>{ const v=vecs[j]; if(!v) return [T(p.label),{content:'sin datos por zona',colSpan:6}];
-        const t=sum(v), mx=v.indexOf(Math.max(...v));
-        return [T(p.label),T(fmt(t,'int')),T(fmt(zoneStat(v,'mean'),'dec')),T(fmt(zoneStat(v,'median'),'dec')),T(fmt(zoneStat(v,'sd'),'dec')),T(fmt(zoneStat(v,'cv'),'pct')),T(`Z${mx+1} · ${t?fmt(v[mx]/t,'pct'):'-'}`)]; });
-      doc.autoTable({...base,startY:y,head:[['Período','Total','Media','Mediana','Desvío (n-1)','CV','Zona con más']],body:zb,columnStyles:{1:{halign:'right'},2:{halign:'right'},3:{halign:'right'},4:{halign:'right'},5:{halign:'right'},6:{halign:'right'}}}); after();
-      const {ks:hk,per}=heatData('alarmas'); const hv=hk.length>10?hk.length-10:0;
-      tit('Participación de cada zona en el total del mes'+(hv?' · últimos 10 meses':''));
-      const pv=per.slice(hv); const mxs=Math.max(...pv.flatMap(p=>p.sh))||1;
-      const hb=Array.from({length:20},(_,z)=>['Z'+(z+1),...pv.map(p=>T(`${p.v[z]} (${fmt(p.sh[z],'pct')})`))]);
-      doc.autoTable({...base,startY:y,head:[['Zona',...hk.slice(hv).map(mLabel)]],body:hb,styles:{...base.styles,fontSize:7,cellPadding:0.9},
-        didParseCell:dt=>{ if(dt.section==='body'&&dt.column.index>0){ dt.cell.styles.halign='center'; const sh=pv[dt.column.index-1].sh[dt.row.index]/mxs; if(sh>0.05){ const a=Math.round(255-sh*120); dt.cell.styles.fillColor=[255,a,a]; } } } }); after();
-      const rk=rankingZonas('alarmas');
-      if(rk.length){ tit('Zonas recurrentes en el top 3');
-        doc.autoTable({...base,startY:y,head:[['Zona','Meses en el top 3','Racha actual','Participación promedio']],body:rk.map(r=>['Z'+(r.z+1),`${r.n} de ${r.m}`,r.racha?mesesTxt(r.racha):'-',T(fmt(r.sh,'pct'))]),tableWidth:150}); after(); }
-    }
-  }
 
   // Tablero
-  const areas=areasCargadas();
-  if(S.has('tablero')&&!areas.length&&tableroItems().length){ tit('Estado del tablero'); y+=3; parr('Sin puntajes definidos para los estados: el índice no se calcula.'); y+=4; }
-  if(S.has('tablero')&&areas.length){ tit('Índice de estado del tablero por área (0 a 100)'+(ks.length>10?' · últimos 10 meses':''));
+  const areas=areasCargadas(); const kv=ks.length>10?ks.slice(-10):ks;
+  if(areas.length){ tit('Índice de estado del tablero por área (0 a 100)'+(ks.length>10?' · últimos 10 meses':''));
     const ib=areas.map(a=>[T(areaNom(a)),...kv.map(k=>T(fmt(DATA[k]._idx_areas?.[a],'idx')))]);
     ib.push([{content:'Índice general',styles:{fontStyle:'bold'}},...kv.map(k=>({content:T(fmt(DATA[k].idx_tablero,'idx')),styles:{fontStyle:'bold'}}))]);
     const iv=[...areas.map(a=>kv.map(k=>DATA[k]._idx_areas?.[a])),kv.map(k=>DATA[k].idx_tablero)];
@@ -1001,32 +990,28 @@ function bajarPdf(S){
       doc.autoTable({...base,startY:y,head:[['Ítem',...kv.map(mLabel)]],body:ch.map(r=>[T(r.item),...kv.map(k=>T(r.e[k]||'-'))]),columnStyles:{0:{cellWidth:80}}}); after(); }
     else { parr(`Ningún ítem del tablero cambió de estado (${its.length} ítems).`); y+=4; }
   }
-  if(S.has('tablero')&&!areas.length){ const its=tableroItems(); const ch=its.filter(r=>new Set(kv.map(k=>r.e[k]).filter(Boolean)).size>1);
-    if(ch.length){ tit('Ítems del tablero que cambiaron de estado'); doc.autoTable({...base,startY:y,head:[['Ítem',...kv.map(mLabel)]],body:ch.map(r=>[T(r.item),...kv.map(k=>T(r.e[k]||'-'))]),columnStyles:{0:{cellWidth:80}}}); after(); } }
 
   // Pendientes
   const last=ks[ks.length-1];
   const pr=PEND.map(p=>({p,i:pendInfo(p,last)})).filter(o=>o.i).sort((a,b)=>(a.i.abierto===b.i.abierto?0:a.i.abierto?-1:1)||b.i.meses-a.i.meses);
-  if(S.has('pendientes')&&pr.length){ tit(`Seguimiento de pendientes al ${mLabel(last)}`);
+  if(pr.length){ tit(`Seguimiento de pendientes al ${mLabel(last)}`);
     const pb=pr.map(o=>{ const e=o.p.est[o.i.last]||{}; return [T(o.p.area),T(o.p.tema),T(o.i.abierto?mesesTxt(o.i.meses):`cerrado en ${mLabel(o.i.cierre)} (${mesesTxt(o.i.meses)})`),T(CATS[o.i.cat][0]),T(e.t||'')]; });
     doc.autoTable({...base,startY:y,head:[['Área','Tema','Antigüedad','Situación','Detalle del último mes con dato']],body:pb,columnStyles:{0:{cellWidth:24},1:{cellWidth:80},2:{cellWidth:38},3:{cellWidth:22}},
       didParseCell:dt=>{ if(dt.section==='body'&&dt.column.index===3){ const c=pr[dt.row.index].i.cat; const k=c==='empeora'?'d-bad':c==='abierto'?'d-neu':'d-good'; dt.cell.styles.fillColor=COL[k][0]; dt.cell.styles.textColor=COL[k][1]; dt.cell.styles.fontStyle='bold'; } } });
     after(); }
 
   // Hallazgos
-  if(S.has('hallazgos')){
   const H=generarHallazgos();
   tit('Hallazgos'); y+=3;
   if(H.msg) parr(H.msg);
   else{ parr(`Comparación: ${H.B.label} frente a ${H.A.label}`,'b'); if(H.aviso) parr(H.aviso); y+=1;
     H.secs.forEach(s=>{ y+=1.5; parr(s.t,'b'); s.l.forEach(x=>parr('- '+x,'li')); });
     const nt=NOTAS[H.key]; if(nt&&nt.trim()){ y+=4; tit('Notas del analista'); y+=3; nt.split('\n').filter(x=>x.trim()).forEach(x=>{ parr(x); y+=1; }); } }
-  }
 
   const n=doc.getNumberOfPages();
   for(let i=1;i<=n;i++){ doc.setPage(i); doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(124,122,116);
     doc.text(T(`Informes comparativos · ${granLabel()}`),12,Hh-7); doc.text(`Página ${i} de ${n}`,W-12,Hh-7,{align:'right'}); }
-  descargar(doc.output('blob'),nombreBase()+(S.size<6?'_seleccion':'')+'.pdf');
+  descargar(doc.output('blob'),nombreBase()+'.pdf');
   descStatus('PDF descargado.');
 }
 function bajarCsv(){
@@ -1070,6 +1055,7 @@ drop.onclick=()=>fileIn.click(); fileIn.onchange=()=>{ handleFiles([...fileIn.fi
 ['dragenter','dragover'].forEach(e=>drop.addEventListener(e,ev=>{ev.preventDefault();drop.classList.add('over');}));
 ['dragleave','drop'].forEach(e=>drop.addEventListener(e,ev=>{ev.preventDefault();drop.classList.remove('over');}));
 drop.addEventListener('drop',ev=>handleFiles([...ev.dataTransfer.files].filter(f=>f.type==='application/pdf'||f.name.toLowerCase().endsWith('.pdf'))));
+$('btnSample').onclick=()=>{ if(keys().length&&!confirm('Esto reemplaza los informes, zonas, pendientes y notas cargados por el ejemplo de junio y julio. ¿Seguir?')) return; loadSample(); refresh(); statusEl.textContent='Ejemplo restaurado.'; };
 $('btnClear').onclick=()=>{ if(confirm('¿Quitar todos los informes, zonas, pendientes y notas?')){ DATA={}; ZONES={}; PEND=[]; NOTAS={}; refresh(); } };
 const gran=$('gran');
 gran.onchange=()=>{ $('customBox').hidden=gran.value!=='custom'; if(gran.value==='custom'){ const ks=keys(); if(ks.length){ $('aFrom').value=$('aTo').value=ks[0]; $('bFrom').value=$('bTo').value=ks[ks.length-1]; } } renderComp(); renderAliara(); renderHallazgos(); };
@@ -1077,25 +1063,28 @@ gran.onchange=()=>{ $('customBox').hidden=gran.value!=='custom'; if(gran.value==
 $('evoSel').onchange=()=>renderEvo(); $('zMetric').onchange=renderAliara; $('zView').onchange=renderAliara;
 [['stdSup','std_sup'],['stdAud','std_aud'],['stdHab','std_hab']].forEach(([id,k])=>$(id).onchange=()=>{ const v=+$(id).value; if(v>0){ CFG[k]=v; refresh(); } else $(id).value=CFG[k]; });
 $('stdReset').onclick=()=>{ const d=cfgDefault(); CFG.std_sup=d.std_sup; CFG.std_aud=d.std_aud; CFG.std_hab=d.std_hab; refresh(); };
-$('scoreSug').onclick=()=>{ CFG.scores={...SCORES_SUG}; refresh(); };
-$('objetivo').oninput=()=>{ OBJ=$('objetivo').value.trim(); $('objTxt').textContent=OBJ?' · '+OBJ:''; };
-$('dlTodo').onchange=()=>document.querySelectorAll('[data-sec]').forEach(c=>c.checked=$('dlTodo').checked);
-document.querySelectorAll('[data-sec]').forEach(c=>c.onchange=()=>{ const all=[...document.querySelectorAll('[data-sec]')]; $('dlTodo').checked=all.every(x=>x.checked); $('dlTodo').indeterminate=!$('dlTodo').checked&&all.some(x=>x.checked); });
-const seccionesElegidas=()=>new Set([...document.querySelectorAll('[data-sec]')].filter(c=>c.checked).map(c=>c.dataset.sec));
-window.addEventListener('beforeunload',e=>{ if(keys().length){ e.preventDefault(); e.returnValue=''; } });
+$('scoreReset').onclick=()=>{ CFG.scores={...SCORES_DEF}; refresh(); };
 $('btnPendAdd').onclick=()=>{ PEND.push({id:'p'+Date.now(),area:'',tema:'',desde:'',est:{}}); save(); renderPend(); const ins=$('pendTable').querySelectorAll('input[data-f="tema"]'); if(ins.length) ins[ins.length-1].focus(); };
 $('btnPendCopy').onclick=()=>{ const ks=keys(); if(ks.length<2) return; const last=ks[ks.length-1]; let n=0;
   PEND.forEach(p=>{ p.est=p.est||{}; if(p.est[last]&&p.est[last].c) return; const inf=pendInfo(p,ks[ks.length-2]); if(!inf||!inf.abierto) return;
     p.est[last]={c:'abierto',t:p.est[inf.last].t||''}; n++; });
   refresh(); $('pendStatus').textContent=n?`Se completaron ${n} temas como "Abierto". Revisá cuáles cambiaron.`:'No había temas abiertos para completar.'; };
 $('notas').oninput=()=>{ const k=$('notas').dataset.key; if(!k) return; const v=$('notas').value; if(v.trim()) NOTAS[k]=v; else delete NOTAS[k]; save(); };
-$('btnXlsx').onclick=()=>{ const S=seccionesElegidas(); if(!S.size){ descStatus('Elegí al menos una sección.'); return; } bajarExcel(S).catch(e=>descStatus('Error al armar el Excel: '+e.message)); };
-$('btnPdf').onclick=()=>{ const S=seccionesElegidas(); if(!S.size){ descStatus('Elegí al menos una sección.'); return; } try{ bajarPdf(S); }catch(e){ descStatus('Error al armar el PDF: '+e.message); } };
+$('btnXlsx').onclick=()=>bajarExcel().catch(e=>descStatus('Error al armar el Excel: '+e.message));
+$('btnPdf').onclick=()=>{ try{ bajarPdf(); }catch(e){ descStatus('Error al armar el PDF: '+e.message); } };
 $('btnCsv').onclick=bajarCsv;
+$('btnBackup').onclick=()=>{ descargar(new Blob([JSON.stringify({tipo:'informes_comparativos',v:2,fecha:new Date().toISOString(),DATA,ZONES,PEND,NOTAS,CFG},null,1)],{type:'application/json'}),`respaldo_informes_comparativos_${new Date().toISOString().slice(0,10)}.json`); descStatus('Respaldo descargado.'); };
+$('btnRestore').onclick=()=>$('fileRestore').click();
+$('fileRestore').onchange=async()=>{ const f=$('fileRestore').files[0]; $('fileRestore').value=''; if(!f) return;
+  try{ const s=JSON.parse(await f.text()); if(s.tipo!=='informes_comparativos'||!s.DATA) throw new Error('el archivo no es un respaldo de esta herramienta');
+    if(keys().length&&!confirm('Esto reemplaza todo lo cargado por el contenido del respaldo. ¿Seguir?')) return;
+    aplicarEstado(s); refresh(); descStatus(`Respaldo restaurado: ${keys().length} meses.`); }catch(e){ descStatus('No se pudo restaurar: '+e.message); } };
 const themeSel=$('theme');
-function applyTheme(){ if(themeSel.value) document.documentElement.setAttribute('data-theme',themeSel.value); else document.documentElement.removeAttribute('data-theme'); renderComp(); renderAliara(); renderEstado(); }
-themeSel.onchange=applyTheme;
+try{ themeSel.value=localStorage.getItem('ic_theme')||''; }catch(e){}
+function applyTheme(){ if(themeSel.value) document.documentElement.setAttribute('data-theme',themeSel.value); else document.documentElement.removeAttribute('data-theme'); try{localStorage.setItem('ic_theme',themeSel.value);}catch(e){} renderComp(); renderAliara(); renderEstado(); }
+themeSel.onchange=applyTheme; if(themeSel.value) document.documentElement.setAttribute('data-theme',themeSel.value);
 
+if(!load()) loadSample();
 refresh();
 </script>
 </body>
